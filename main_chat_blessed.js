@@ -602,19 +602,19 @@ const dropDownOptions = [
   'GPT4 x Vicuna',
   'Guanaco',
   'Guanaco QLoRA',
-  'H2O\'s GPT-GM-OASST1-Falcon 40B v2',
+  // 'H2O\'s GPT-GM-OASST1-Falcon 40B v2',
   'Hippogriff',
   'Karen The Editor',
   'Lazarus 30B',
   'Manticore',
   'Minotaur',
-  'MPT 30B',
+  // 'MPT 30B',
   'Nous Hermes',
   'OpenAssistant LLaMA',
   'Orca Mini',
   'Samantha',
   'Stable Vicuna',
-  'Starchat',
+  // 'Starchat',
   'Tulu',
   'Vicuna V0',
   'Vicuna V1.1 & V1.3',
@@ -2844,7 +2844,7 @@ async function findBinFiles(folderPath, fileListItems = []) {
 
 
 // --------------------------------------------
-// function to save the text history in a file
+// function to save the chat-history into a file
 //
 // const saveTextHistory = (text) => {
 //   const outputPath = path.join(__dirname, 'text_history.md');
@@ -2866,8 +2866,6 @@ const saveTextHistory = async (text) => {
 // --------------------------------------------
 // function to log the commands
 //
-// const logCommand = (command, args) => {
-//   const logFilePath = path.join(__dirname, 'pacha_log.txt');
 const logCommand = async (command, args) => {
     const logFilePath = path.join(pachaFolderPath, 'log_datei.md');
     await createFolderIfNotExists(pachaFolderPath);
@@ -2884,8 +2882,6 @@ const logCommand = async (command, args) => {
 // --------------------------------------------
 // function to log the raw output
 //
-// const logOutput = (output) => {
-//   const logFilePath = path.join(__dirname, 'pacha_log.txt');
 const logOutput = async (output) => {
     const logFilePath = path.join(pachaFolderPath, 'log_datei.md');
     await createFolderIfNotExists(pachaFolderPath);
@@ -2980,11 +2976,11 @@ const getPrefixSuffix = (selectedDropDown) => {
         prefix = '### Human: ';
         suffix = '\n\n### Assistant:';
         break;
-    case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
-        prePrefix = '';
-        prefix = '<|prompt|>';
-        suffix = '<|endoftext|>\n<|answer|>';
-        break;
+    // case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
+    //     prePrefix = '';
+    //     prefix = '<|prompt|>';
+    //     suffix = '<|endoftext|>\n<|answer|>';
+    //     break;
     case 'Hippogriff':
         prePrefix = '';
         prefix = 'USER: ';
@@ -3009,10 +3005,10 @@ const getPrefixSuffix = (selectedDropDown) => {
         prePrefix = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
-    case 'MPT 30B':
-        prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
-        prefix = '\n<|im_start|>user\n';
-        suffix = '<|im_end|>\n<|im_start|>assistant';
+    // case 'MPT 30B':
+    //     prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
+    //     prefix = '\n<|im_start|>user\n';
+    //     suffix = '<|im_end|>\n<|im_start|>assistant';
     case 'Nous Hermes':
         prePrefix = '';
         prefix = '### Instruction: ';
@@ -3038,11 +3034,11 @@ const getPrefixSuffix = (selectedDropDown) => {
         prefix = '### Human: ';
         suffix = '\n### Assistant:';
         break;
-    case 'Starchat':
-        prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
-        prefix = '<|user|> ';
-        suffix = ' <|end|>\n<|assistant|>';
-        break;
+    // case 'Starchat':
+    //     prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
+    //     prefix = '<|user|> ';
+    //     suffix = ' <|end|>\n<|assistant|>';
+    //     break;
     case 'Tulu':
         prePrefix = '';
         prefix = '<|user|>\n';
@@ -3229,20 +3225,55 @@ function saveMultiNotes() {
 
 const child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
 
-let output = ''; // Variable for saving the output
+let output = ''; // variable for saving the output
+let dialogHistory = ''; // variable for saving the dialogue course
+let isFirstChunk = true;
+let formattedOutput = '';
+
+
 
 child.stdout.on('data', (data) => {
   output += data.toString();
   gptOutput += data.toString();
+
   const userOutput = gptOutput.replace(`${prefix}${text}${suffix}`, '');
-  // outputBox.setContent(`\nYou\n${text}\n\nAssistant${userOutput}\n`);
-  const formattedOutput = `\n\u001b[1;30mYou\n\u001b[0m\u001b[1;90m${text}\u001b[0m\n\n\u001b[1;90mAssistant\u001b[0m${userOutput}\n`;
-  outputBox.setContent(formattedOutput);
+
+  // let formattedOutput;
+  if (isFirstChunk) {
+    dialogHistory += `\nYou\n${text}\n\nAssistant${userOutput}\n`;
+
+    // formattedOutput = `\n\u001b[1;30mYou\n\u001b[0m\u001b[1;90m${text}\u001b[0m\n\n\u001b[1;30mAssistant\u001b[0m\u001b[1;90m${userOutput}\n\u001b[0m`;
+
+    formattedOutput = `\nYou\n${text}\n\nAssistant${userOutput}\n`;
+    
+    isFirstChunk = false;
+  } else {
+    dialogHistory += `${userOutput}`;
+
+    formattedOutput = `${userOutput}`;
+  }
+
+
+  // update dialogue history
+  // dialogHistory += `\nYou\n${text}\n\nAssistant${userOutput}\n`;
+
+
+
+  let currentContent = outputBox.getContent();
+  outputBox.setContent(currentContent + formattedOutput);
   screen.render();
+
+
+
   if (storeTextEnabled) {
     saveTextHistory(`\nYou\n${text}\n\nAssistant\n${userOutput}\n`);
   }
+
   logOutput(data.toString());
+
+  // Reset output and gptOutput
+  output = '';
+  gptOutput = '';
  }
 )
 //
@@ -3304,6 +3335,7 @@ findBinFiles(modelsFolder).then(binFiles => {
 
 
 // --------------------------------------------
+// function to show interactive cpu usage
 //
 function setBackgroundColor(usage) {
   if (usage >= 0 && usage <= 15) {
@@ -3352,6 +3384,7 @@ setInterval(updateCpuUsage, 200);
 sendButton.on('press', () => {
   const text = inputBox.getValue();
   executeCommand(text);
+  isFirstChunk = true;
   inputBox.clearValue();
   screen.render();
  }
@@ -3360,6 +3393,7 @@ sendButton.on('press', () => {
 inputBox.on('submit', () => {
   const text = inputBox.getValue();
   if (text.trim() !== '') {
+    isFirstChunk = true;
     executeCommand(text);
     inputBox.clearValue();
     screen.render();
