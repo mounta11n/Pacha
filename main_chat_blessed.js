@@ -1694,7 +1694,7 @@ const nPredictTooltip = blessed.text({
   width: 21,
   height: 4,
   content: '',
-  hoverText: '\n what is the maximum number of text tokens the language model should generate?\n\nEnter -1 for infinity (default = 58) \n',
+  hoverText: '\n what is the maximum number of text tokens the language model should generate?\n\nEnter -1 for infinite (default = 158) \n',
   style: {
     bg: '#555753',
     fg: '#555753',
@@ -2885,17 +2885,17 @@ screen.append(frame);
         historyTooltip.append(historyBlockTooltip);
         historyTooltip.append(historyCheckbox);
 
-      checkboxesFrame.append(storeTextTooltip);
-        storeTextTooltip.append(storeTextBlockTooltip);
-        storeTextTooltip.append(storeTextCheckbox);
+      // checkboxesFrame.append(storeTextTooltip);
+      //   storeTextTooltip.append(storeTextBlockTooltip);
+      //   storeTextTooltip.append(storeTextCheckbox);
 
-      checkboxesFrame.append(semanticMemoryTooltip);
-        semanticMemoryTooltip.append(semanticMemoryBlockTooltip);
-        semanticMemoryTooltip.append(semanticMemoryCheckbox);
+      // checkboxesFrame.append(semanticMemoryTooltip);
+      //   semanticMemoryTooltip.append(semanticMemoryBlockTooltip);
+      //   semanticMemoryTooltip.append(semanticMemoryCheckbox);
 
-      checkboxesFrame.append(appendMemoryTooltip);
-        appendMemoryTooltip.append(appendMemoryBlockTooltip);
-        appendMemoryTooltip.append(appendMemoryCheckbox);
+      // checkboxesFrame.append(appendMemoryTooltip);
+      //   appendMemoryTooltip.append(appendMemoryBlockTooltip);
+      //   appendMemoryTooltip.append(appendMemoryCheckbox);
 //
 // --------------------------------------------
 
@@ -3003,16 +3003,25 @@ async function findBinFiles(folderPath, fileListItems = []) {
 // --------------------------------------------
 // function to save the chat-history into a file
 //
-// const saveTextHistory = (text) => {
-//   const outputPath = path.join(__dirname, 'text_history.md');
-//   fs.appendFileSync(outputPath, text, 'utf8');
-// };
-const saveTextHistory = async (text) => {
-    const sessionTimestamp = getSessionTimestamp();
-    const outputPath = path.join(sessionsFolderPath, `${sessionTimestamp}.md`);
-    await createFolderIfNotExists(sessionsFolderPath);
-    await fsPromises.appendFile(outputPath, text, 'utf8');
-  };
+let dialogLog = '';
+
+  //
+  const getSessionLogfilePath = () => {
+    const basePath = path.join(sessionsFolderPath, getSessionTimestamp());
+    return `${basePath}-sessionlog.md`;
+   };
+   //
+   const writeToSessionLog = async (text) => {
+    const logFilePath = getSessionLogfilePath();
+    try {
+      await fsPromises.writeFile(logFilePath, text);
+    } catch (err) {
+      console.error("Error when writing to the log file", err);
+    }
+   };
+  //
+
+
 //
 // --------------------------------------------
 
@@ -3024,7 +3033,7 @@ const saveTextHistory = async (text) => {
 // function to log the commands
 //
 const logCommand = async (command, args) => {
-    const logFilePath = path.join(pachaFolderPath, 'log_datei.md');
+    const logFilePath = path.join(pachaFolderPath, 'pacha_log.txt');
     await createFolderIfNotExists(pachaFolderPath);
     const logEntry = `\n- - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n\n\n\n\n====== LOG DATE ======\n\n${new Date().toISOString()}\n\n\n\n====== COMMAND LOGGED ======\n\n${command} ${args.join(' ')}\n\n\n\n\n====== RAW OUTPUT FROM LLAMA.CPP ======\n\n`;
     fs.appendFileSync(logFilePath, logEntry, 'utf8');
@@ -3040,7 +3049,7 @@ const logCommand = async (command, args) => {
 // function to log the raw output
 //
 const logOutput = async (output) => {
-    const logFilePath = path.join(pachaFolderPath, 'log_datei.md');
+    const logFilePath = path.join(pachaFolderPath, 'pacha.log.txt');
     await createFolderIfNotExists(pachaFolderPath);
     fs.appendFileSync(logFilePath, output, 'utf8');
 };
@@ -3274,17 +3283,7 @@ function saveMultiNotes() {
 //
 // --------------------------------------------
 
-// const saveMultiNotes = function() {
-//   let content = multiNotes.getValue();
-//   fs.writeFile('notes.md', content, (error) => {
-//       if (error) {
-//           throw error;
-//       }
-//       console.log('Saved!');
-//   });
-// }
 
-// multiNotesSaveLabel.on('click', saveMultiNotes);
 
 
 
@@ -3329,7 +3328,7 @@ function saveMultiNotes() {
       '-m',
       path.join(modelsFolder, selectedModel), 
       '-n',
-      '58',
+      '158',
     ];
 
     if (temperatureInput.getValue() !== '') {
@@ -3459,11 +3458,11 @@ child.stdout.on('data', (data) => {
 
   // let formattedOutput;
   if (isFirstChunk) {
-    dialogHistory += `\nYou\n${text}\n\nAssistant${userOutput}\n`;
+    dialogHistory += `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
 
     // formattedOutput = `\n\u001b[1;30mYou\n\u001b[0m\u001b[1;90m${text}\u001b[0m\n\n\u001b[1;30mAssistant\u001b[0m\u001b[1;90m${userOutput}\n\u001b[0m`;
 
-    formattedOutput = `\nYou\n${text}\n\nAssistant${userOutput}\n`;
+    formattedOutput = `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
     
     isFirstChunk = false;
   } else {
@@ -3498,13 +3497,16 @@ child.stdout.on('data', (data) => {
   // Reset output and gptOutput
   output = '';
   gptOutput = '';
+  dialogLog += `${formattedOutput}`;
  }
 )
 //
 // --------------------------------------------
 
 
-
+child.on('close', () => {
+  writeToSessionLog(dialogLog);
+});
 
 
 // --------------------------------------------
