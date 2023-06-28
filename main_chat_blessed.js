@@ -3380,7 +3380,6 @@ setInterval(updateCpuUsage, 200);
 
 // --------------------------------------------
 //
-
 sendButton.on('press', () => {
   const text = inputBox.getValue();
   executeCommand(text);
