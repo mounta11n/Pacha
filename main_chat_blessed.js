@@ -15,6 +15,8 @@ const screen = blessed.screen({
   ignoreLocked: ['C-c'],
  }
 )
+
+let child;
 //
 // --------------------------------------------
 
@@ -862,10 +864,10 @@ const multiNotesSaveLabel = blessed.box({
     bg: '#555753',
     fg: '#4e9a06',
     bold: true,
-    border: {
-      bg: '#555753',
-      fg: 'red',
-    },
+    // border: {
+    //   bg: '#555753',
+    //   fg: 'red',
+    // },
     hover: {
       bg: '#555753',
       fg: '#8ae234',
@@ -900,7 +902,7 @@ inputBox.on('submit', () => {});
 // --------------------------------------------
 //
 const radioButtonTooltip = blessed.text({
-  bottom: 0,
+  top: 2,
   left: 0,
   width: 23,
   height: 6,
@@ -1063,12 +1065,12 @@ const inputEtSendFrame = blessed.box({
 // --------------------------------------------
 //
 const lrMiroTooltip = blessed.text({
-  bottom: 4,
+  top: 1,
   left: 21,
   width: 21,
   height: 3,
   content: '',
-  hoverText: '\n mirostat learning rate, parameter eta (0 - 1; default = 0.1)\nhigher values learn from shorter text sections (good for instructions, for example). low values response better to longer texts (like creative and story writing)',
+  hoverText: '\n mirostat learning rate, parameter eta (0 - 1; default = 0.1)\nhigher values learn from shorter text sections (good for instructions, for example). low values response better to longer texts (like creative and story writing) \n',
   style: {
     bg: '#555753',
     fg: '#555753',
@@ -1114,7 +1116,7 @@ const lrMiroInput = blessed.textbox({
   // label: 'text inside field',
   keys: true,
   mouse: true,
-  content: 'test',
+  // content: 'test',
   inputOnFocus: true,
   style: {
       bg: '#4e9a06',
@@ -1166,7 +1168,7 @@ const lrMiroLabel = blessed.text({
 // --------------------------------------------
 //
 const entMiroTooltip = blessed.text({
-  bottom: 2,
+  top: 4,
   left: 21,
   width: 21,
   height: 3,
@@ -2164,7 +2166,7 @@ const advancedTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '?',
+  content: '',
   hoverText: '\n here you can set your own flags manually like: prompt cache; prompt file; mlock; gpu settings; lora and more. see ./main --help for more info \n',
   style: {
     bg: '#555753',
@@ -2269,7 +2271,7 @@ const historyTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '?',
+  content: '',
   hoverText: '\n your dialogs will be concatenated and presented to the model as a chat history \n',
   style: {
     bg: '#555753',
@@ -2350,7 +2352,7 @@ const storeTextTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '?',
+  content: '',
   hoverText: '\n store a local markdown file of your conversation \n',
   style: {
     bg: '#555753',
@@ -2431,7 +2433,7 @@ const semanticMemoryTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '?',
+  content: '',
   hoverText: ' infinite memory (bert.ggml vector embedding & semantic search)\nresults are injected into prompt',
   style: {
     bg: '#555753',
@@ -2585,16 +2587,16 @@ const appendMemoryCheckbox = blessed.checkbox({
 
 // --------------------------------------------
 //
-const outputBox = blessed.box({
+const outEtstopBox = blessed.box({
   top: 2,
   // bottom: '16%',
   left: 3,
   width: '100%-6',
   height: '100%-8',
-  keys: true,
-  mouse: true,
-  scrollable: true,
-  alwaysScroll: true,
+  // keys: true,
+  // mouse: true,
+  // scrollable: true,
+  // alwaysScroll: true,
   style: {
     bg: '#d3d7cf',
     fg: '#000',
@@ -2609,6 +2611,110 @@ const outputBox = blessed.box({
       inverse: false,
       // bg: 'red',
       // fg: '#f5f5f5',
+    },
+  },
+ }
+)
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+const stopTooltip = blessed.box({
+  done: () => {},
+  bottom: 5,
+  right: 3,
+  // left: 0,
+  height: 1,
+  width: '16%-3',
+  content: '',
+  hoverText: '\n stop the text generation process \n',
+  style: {
+    bg: '#555753',
+    fg: '#555753',
+    focus: {
+      bg: '#555753',
+      fg: '#555753',
+    },
+    hover: {
+      bg: '#555753',
+      fg: '#555753',
+      bold: true,
+    },
+  },
+ }
+)
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+const stopLabel = blessed.text({
+  bottom: 0,
+  right: 1,
+  width: 6,
+  height: 1,
+  keys: true,
+  mouse: true,
+  content: ' stop ',
+  style: {
+    bg: '#d3d7cf',
+    fg: '#555753',
+    bold: true,
+    focus: {
+      bg: '#d3d7cf',
+      fg: '#555753',
+      bold: true,
+    },
+    hover: {
+      bg: '#f5f5f5',
+      fg: 'red',
+      bold: true,
+    },
+  },
+}
+)
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+const outputBox = blessed.box({
+  top: 0,
+  // bottom: '16%',
+  left: 5,
+  width: '100%-10',
+  height: '100%-1',
+  keys: true,
+  mouse: true,
+  scrollable: true,
+  alwaysScroll: true,
+  style: {
+    bg: '#d3d7cf',
+    fg: '#000',
+  },
+  scrollbar: {
+    ch: '_',
+    track: {
+      bg: '#4e9a06',
+      fg: '#000',
+    },
+    style: {
+      inverse: false,
+      bg: 'red',
+      fg: 'blue',
     },
   },
  }
@@ -2637,7 +2743,10 @@ screen.append(frame);
       inputEtSendFrame.append(sendButton);
       inputEtSendFrame.append(inputBox);
     
-    midFrame.append(outputBox);
+    midFrame.append(outEtstopBox);
+      outEtstopBox.append(outputBox);
+      outEtstopBox.append(stopLabel);
+    midFrame.append(stopTooltip);
 
     sidebarLeft.append(topBarLeftTooltip);
     sidebarLeft.append(topBarLabel);
@@ -3223,7 +3332,8 @@ function saveMultiNotes() {
     args.push('-p', `${gptInput}`);
     logCommand(command, args);
 
-const child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
+    child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
+
 
 let output = ''; // variable for saving the output
 let dialogHistory = ''; // variable for saving the dialogue course
@@ -3252,6 +3362,7 @@ child.stdout.on('data', (data) => {
 
     formattedOutput = `${userOutput}`;
   }
+
 
 
   // update dialogue history
@@ -3380,6 +3491,13 @@ setInterval(updateCpuUsage, 200);
 
 // --------------------------------------------
 //
+stopLabel.on('click', function(data) {
+  if (child) {
+    child.kill('SIGINT');
+  }
+});
+
+
 sendButton.on('press', () => {
   const text = inputBox.getValue();
   executeCommand(text);
