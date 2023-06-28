@@ -15,8 +15,6 @@ const screen = blessed.screen({
   ignoreLocked: ['C-c'],
  }
 )
-
-let child;
 //
 // --------------------------------------------
 
@@ -604,19 +602,19 @@ const dropDownOptions = [
   'GPT4 x Vicuna',
   'Guanaco',
   'Guanaco QLoRA',
-  // 'H2O\'s GPT-GM-OASST1-Falcon 40B v2',
+  'H2O\'s GPT-GM-OASST1-Falcon 40B v2',
   'Hippogriff',
   'Karen The Editor',
   'Lazarus 30B',
   'Manticore',
   'Minotaur',
-  // 'MPT 30B',
+  'MPT 30B',
   'Nous Hermes',
   'OpenAssistant LLaMA',
   'Orca Mini',
   'Samantha',
   'Stable Vicuna',
-  // 'Starchat',
+  'Starchat',
   'Tulu',
   'Vicuna V0',
   'Vicuna V1.1 & V1.3',
@@ -864,10 +862,10 @@ const multiNotesSaveLabel = blessed.box({
     bg: '#555753',
     fg: '#4e9a06',
     bold: true,
-    // border: {
-    //   bg: '#555753',
-    //   fg: 'red',
-    // },
+    border: {
+      bg: '#555753',
+      fg: 'red',
+    },
     hover: {
       bg: '#555753',
       fg: '#8ae234',
@@ -902,7 +900,7 @@ inputBox.on('submit', () => {});
 // --------------------------------------------
 //
 const radioButtonTooltip = blessed.text({
-  top: 2,
+  bottom: 0,
   left: 0,
   width: 23,
   height: 6,
@@ -1065,12 +1063,12 @@ const inputEtSendFrame = blessed.box({
 // --------------------------------------------
 //
 const lrMiroTooltip = blessed.text({
-  top: 1,
+  bottom: 4,
   left: 21,
   width: 21,
   height: 3,
   content: '',
-  hoverText: '\n mirostat learning rate, parameter eta (0 - 1; default = 0.1)\nhigher values learn from shorter text sections (good for instructions, for example). low values response better to longer texts (like creative and story writing) \n',
+  hoverText: '\n mirostat learning rate, parameter eta (0 - 1; default = 0.1)\nhigher values learn from shorter text sections (good for instructions, for example). low values response better to longer texts (like creative and story writing)',
   style: {
     bg: '#555753',
     fg: '#555753',
@@ -1116,7 +1114,7 @@ const lrMiroInput = blessed.textbox({
   // label: 'text inside field',
   keys: true,
   mouse: true,
-  // content: 'test',
+  content: 'test',
   inputOnFocus: true,
   style: {
       bg: '#4e9a06',
@@ -1168,7 +1166,7 @@ const lrMiroLabel = blessed.text({
 // --------------------------------------------
 //
 const entMiroTooltip = blessed.text({
-  top: 4,
+  bottom: 2,
   left: 21,
   width: 21,
   height: 3,
@@ -2166,7 +2164,7 @@ const advancedTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '',
+  content: '?',
   hoverText: '\n here you can set your own flags manually like: prompt cache; prompt file; mlock; gpu settings; lora and more. see ./main --help for more info \n',
   style: {
     bg: '#555753',
@@ -2271,7 +2269,7 @@ const historyTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '',
+  content: '?',
   hoverText: '\n your dialogs will be concatenated and presented to the model as a chat history \n',
   style: {
     bg: '#555753',
@@ -2352,7 +2350,7 @@ const storeTextTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '',
+  content: '?',
   hoverText: '\n store a local markdown file of your conversation \n',
   style: {
     bg: '#555753',
@@ -2433,7 +2431,7 @@ const semanticMemoryTooltip = blessed.text({
   // left: '55%',
   // align: 'center',
   valign: 'middle',
-  content: '',
+  content: '?',
   hoverText: ' infinite memory (bert.ggml vector embedding & semantic search)\nresults are injected into prompt',
   style: {
     bg: '#555753',
@@ -2587,16 +2585,16 @@ const appendMemoryCheckbox = blessed.checkbox({
 
 // --------------------------------------------
 //
-const outEtstopBox = blessed.box({
+const outputBox = blessed.box({
   top: 2,
   // bottom: '16%',
   left: 3,
   width: '100%-6',
   height: '100%-8',
-  // keys: true,
-  // mouse: true,
-  // scrollable: true,
-  // alwaysScroll: true,
+  keys: true,
+  mouse: true,
+  scrollable: true,
+  alwaysScroll: true,
   style: {
     bg: '#d3d7cf',
     fg: '#000',
@@ -2611,110 +2609,6 @@ const outEtstopBox = blessed.box({
       inverse: false,
       // bg: 'red',
       // fg: '#f5f5f5',
-    },
-  },
- }
-)
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-//
-const stopTooltip = blessed.box({
-  done: () => {},
-  bottom: 5,
-  right: 3,
-  // left: 0,
-  height: 1,
-  width: '16%-3',
-  content: '',
-  hoverText: '\n stop the text generation process \n',
-  style: {
-    bg: '#555753',
-    fg: '#555753',
-    focus: {
-      bg: '#555753',
-      fg: '#555753',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#555753',
-      bold: true,
-    },
-  },
- }
-)
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-//
-const stopLabel = blessed.text({
-  bottom: 0,
-  right: 1,
-  width: 6,
-  height: 1,
-  keys: true,
-  mouse: true,
-  content: ' stop ',
-  style: {
-    bg: '#d3d7cf',
-    fg: '#555753',
-    bold: true,
-    focus: {
-      bg: '#d3d7cf',
-      fg: '#555753',
-      bold: true,
-    },
-    hover: {
-      bg: '#f5f5f5',
-      fg: 'red',
-      bold: true,
-    },
-  },
-}
-)
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-//
-const outputBox = blessed.box({
-  top: 0,
-  // bottom: '16%',
-  left: 5,
-  width: '100%-10',
-  height: '100%-1',
-  keys: true,
-  mouse: true,
-  scrollable: true,
-  alwaysScroll: true,
-  style: {
-    bg: '#d3d7cf',
-    fg: '#000',
-  },
-  scrollbar: {
-    ch: '_',
-    track: {
-      bg: '#4e9a06',
-      fg: '#000',
-    },
-    style: {
-      inverse: false,
-      bg: 'red',
-      fg: 'blue',
     },
   },
  }
@@ -2743,10 +2637,7 @@ screen.append(frame);
       inputEtSendFrame.append(sendButton);
       inputEtSendFrame.append(inputBox);
     
-    midFrame.append(outEtstopBox);
-      outEtstopBox.append(outputBox);
-      outEtstopBox.append(stopLabel);
-    midFrame.append(stopTooltip);
+    midFrame.append(outputBox);
 
     sidebarLeft.append(topBarLeftTooltip);
     sidebarLeft.append(topBarLabel);
@@ -2953,7 +2844,7 @@ async function findBinFiles(folderPath, fileListItems = []) {
 
 
 // --------------------------------------------
-// function to save the chat-history into a file
+// function to save the text history in a file
 //
 // const saveTextHistory = (text) => {
 //   const outputPath = path.join(__dirname, 'text_history.md');
@@ -2975,6 +2866,8 @@ const saveTextHistory = async (text) => {
 // --------------------------------------------
 // function to log the commands
 //
+// const logCommand = (command, args) => {
+//   const logFilePath = path.join(__dirname, 'pacha_log.txt');
 const logCommand = async (command, args) => {
     const logFilePath = path.join(pachaFolderPath, 'log_datei.md');
     await createFolderIfNotExists(pachaFolderPath);
@@ -2991,6 +2884,8 @@ const logCommand = async (command, args) => {
 // --------------------------------------------
 // function to log the raw output
 //
+// const logOutput = (output) => {
+//   const logFilePath = path.join(__dirname, 'pacha_log.txt');
 const logOutput = async (output) => {
     const logFilePath = path.join(pachaFolderPath, 'log_datei.md');
     await createFolderIfNotExists(pachaFolderPath);
@@ -3085,11 +2980,11 @@ const getPrefixSuffix = (selectedDropDown) => {
         prefix = '### Human: ';
         suffix = '\n\n### Assistant:';
         break;
-    // case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
-    //     prePrefix = '';
-    //     prefix = '<|prompt|>';
-    //     suffix = '<|endoftext|>\n<|answer|>';
-    //     break;
+    case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
+        prePrefix = '';
+        prefix = '<|prompt|>';
+        suffix = '<|endoftext|>\n<|answer|>';
+        break;
     case 'Hippogriff':
         prePrefix = '';
         prefix = 'USER: ';
@@ -3114,10 +3009,10 @@ const getPrefixSuffix = (selectedDropDown) => {
         prePrefix = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
-    // case 'MPT 30B':
-    //     prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
-    //     prefix = '\n<|im_start|>user\n';
-    //     suffix = '<|im_end|>\n<|im_start|>assistant';
+    case 'MPT 30B':
+        prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
+        prefix = '\n<|im_start|>user\n';
+        suffix = '<|im_end|>\n<|im_start|>assistant';
     case 'Nous Hermes':
         prePrefix = '';
         prefix = '### Instruction: ';
@@ -3143,11 +3038,11 @@ const getPrefixSuffix = (selectedDropDown) => {
         prefix = '### Human: ';
         suffix = '\n### Assistant:';
         break;
-    // case 'Starchat':
-    //     prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
-    //     prefix = '<|user|> ';
-    //     suffix = ' <|end|>\n<|assistant|>';
-    //     break;
+    case 'Starchat':
+        prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
+        prefix = '<|user|> ';
+        suffix = ' <|end|>\n<|assistant|>';
+        break;
     case 'Tulu':
         prePrefix = '';
         prefix = '<|user|>\n';
@@ -3216,12 +3111,14 @@ function saveMultiNotes() {
 
     const notesText = `---\n\n${timestamp}\n\n${modelInfo}\n${promptTemplate}\n${parameters}\n\n${notesContent}\n\n---\n`;
 
+//   const fileName = `${selectedModel}_${timestampFile}.md`;
+//   const outputPath = path.join(__dirname, fileName);
+//   fs.appendFileSync(outputPath, notesText, 'utf8');
     const fileName = `${selectedModel}_${timestampFile}.md`;
     const outputPath = path.join(notesFolderPath, fileName);
     createFolderIfNotExists(notesFolderPath).then(() => {
     fsPromises.appendFile(outputPath, notesText, 'utf8');
-    });
-}
+})
 //
 // --------------------------------------------
 
@@ -3332,59 +3229,20 @@ function saveMultiNotes() {
     args.push('-p', `${gptInput}`);
     logCommand(command, args);
 
-    child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
+const child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
 
-
-let output = ''; // variable for saving the output
-let dialogHistory = ''; // variable for saving the dialogue course
-let isFirstChunk = true;
-let formattedOutput = '';
-
-
+let output = ''; // Variable for saving the output
 
 child.stdout.on('data', (data) => {
   output += data.toString();
   gptOutput += data.toString();
-
   const userOutput = gptOutput.replace(`${prefix}${text}${suffix}`, '');
-
-  // let formattedOutput;
-  if (isFirstChunk) {
-    dialogHistory += `\nYou\n${text}\n\nAssistant${userOutput}\n`;
-
-    // formattedOutput = `\n\u001b[1;30mYou\n\u001b[0m\u001b[1;90m${text}\u001b[0m\n\n\u001b[1;30mAssistant\u001b[0m\u001b[1;90m${userOutput}\n\u001b[0m`;
-
-    formattedOutput = `\nYou\n${text}\n\nAssistant${userOutput}\n`;
-    
-    isFirstChunk = false;
-  } else {
-    dialogHistory += `${userOutput}`;
-
-    formattedOutput = `${userOutput}`;
-  }
-
-
-
-  // update dialogue history
-  // dialogHistory += `\nYou\n${text}\n\nAssistant${userOutput}\n`;
-
-
-
-  let currentContent = outputBox.getContent();
-  outputBox.setContent(currentContent + formattedOutput);
+  outputBox.setContent(`\nYou\n${text}\n\nAssistant\n${userOutput}`);
   screen.render();
-
-
-
   if (storeTextEnabled) {
     saveTextHistory(`\nYou\n${text}\n\nAssistant\n${userOutput}\n`);
   }
-
   logOutput(data.toString());
-
-  // Reset output and gptOutput
-  output = '';
-  gptOutput = '';
  }
 )
 //
@@ -3446,7 +3304,6 @@ findBinFiles(modelsFolder).then(binFiles => {
 
 
 // --------------------------------------------
-// function to show interactive cpu usage
 //
 function setBackgroundColor(usage) {
   if (usage >= 0 && usage <= 15) {
@@ -3491,17 +3348,10 @@ setInterval(updateCpuUsage, 200);
 
 // --------------------------------------------
 //
-stopLabel.on('click', function(data) {
-  if (child) {
-    child.kill('SIGINT');
-  }
-});
-
 
 sendButton.on('press', () => {
   const text = inputBox.getValue();
   executeCommand(text);
-  isFirstChunk = true;
   inputBox.clearValue();
   screen.render();
  }
@@ -3510,7 +3360,6 @@ sendButton.on('press', () => {
 inputBox.on('submit', () => {
   const text = inputBox.getValue();
   if (text.trim() !== '') {
-    isFirstChunk = true;
     executeCommand(text);
     inputBox.clearValue();
     screen.render();
