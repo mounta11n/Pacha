@@ -2922,7 +2922,7 @@ const getSessionTimestamp = () => {
   if (!sessionTimestamp) {
     const now = new Date();
     const date = now.toISOString().slice(0, 10).replace(/-/g, '');
-    const time = now.toISOString().slice(11, 16).replace(/:/g, '');
+    const time = now.toISOString().slice(11, 19).replace(/:|\./g, '');
     sessionTimestamp = `${date}-${time}`;
   }
   return sessionTimestamp;
@@ -2935,7 +2935,7 @@ const getSessionTimestamp = () => {
 
 
 // --------------------------------------------
-// unterordner erstellen
+// create subfolder
 //
 const createFolderIfNotExists = async (folderPath) => {
     try {
@@ -2955,9 +2955,15 @@ const createFolderIfNotExists = async (folderPath) => {
 
 
 
+// --------------------------------------------
+// define paths and avoid chaos when you are actually just a guest at llama.cpp ...
+//
 const pachaFolderPath = path.join(__dirname, 'pacha');
 const notesFolderPath = path.join(pachaFolderPath, 'notes');
 const sessionsFolderPath = path.join(pachaFolderPath, 'sessions');
+const logsFolderPath = path.join(pachaFolderPath, 'logs')
+//
+// --------------------------------------------
 
 
 
@@ -3008,7 +3014,7 @@ let dialogLog = '';
   //
   const getSessionLogfilePath = () => {
     const basePath = path.join(sessionsFolderPath, getSessionTimestamp());
-    return `${basePath}-sessionlog.md`;
+    return `${basePath}-session.md`;
    };
    //
    const writeToSessionLog = async (text) => {
@@ -3019,9 +3025,30 @@ let dialogLog = '';
       console.error("Error when writing to the log file", err);
     }
    };
-  //
+//
+// --------------------------------------------
 
 
+
+
+
+// --------------------------------------------
+// function to append chat-history into the prompt
+//
+const readSessionLog = async () => {
+  const logFilePath = getSessionLogfilePath();
+  try {
+    // check if file exists before reading
+    if (fs.existsSync(logFilePath)) {
+      return await fsPromises.readFile(logFilePath, 'utf8');
+    } else {
+      return '';  // return empty string if file does not exist (means no context yet)
+    }
+  } catch (err) {
+    console.error("Error when reading from the log file", err);
+    return '';
+  }
+};
 //
 // --------------------------------------------
 
@@ -3033,10 +3060,104 @@ let dialogLog = '';
 // function to log the commands
 //
 const logCommand = async (command, args) => {
-    const logFilePath = path.join(pachaFolderPath, 'pacha_log.txt');
-    await createFolderIfNotExists(pachaFolderPath);
+  const logFilePath1 = path.join(pachaFolderPath, 'pacha_log.txt');
+  const logFilePath2 = path.join(logsFolderPath, 'commands_log.txt');
+
+  await createFolderIfNotExists(pachaFolderPath);
+  await createFolderIfNotExists(logsFolderPath);
     const logEntry = `\n- - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n\n\n\n\n====== LOG DATE ======\n\n${new Date().toISOString()}\n\n\n\n====== COMMAND LOGGED ======\n\n${command} ${args.join(' ')}\n\n\n\n\n====== RAW OUTPUT FROM LLAMA.CPP ======\n\n`;
-    fs.appendFileSync(logFilePath, logEntry, 'utf8');
+
+    fs.appendFileSync(logFilePath1, logEntry, 'utf8');
+    fs.appendFileSync(logFilePath2, logEntry, 'utf8');
+};
+//
+// --------------------------------------------
+
+
+
+
+
+
+//
+// --------------------------------------------
+
+
+
+// --------------------------------------------
+// function to implement new logic
+//
+// --------------------------------------------
+// function to log preprefix
+const logPrePrefix = async (prePrefix) => {
+  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+
+  await createFolderIfNotExists(logsFolderPath);
+
+  fs.writeFileSync(currentPath, prePrefix, 'utf8');
+  // fs.appendFileSync(completePath, prePrefix, 'utf8');
+};
+// --------------------------------------------
+// function to log prefix
+const logPrefix = async (prefix) => {
+  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+
+  await createFolderIfNotExists(logsFolderPath);
+
+  fs.appendFileSync(currentPath, prefix, 'utf8');
+  // fs.appendFileSync(completePath, prefix, 'utf8');
+};
+// --------------------------------------------
+// function to log user input
+const newLogic = async (userInput) => {
+  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+
+  await createFolderIfNotExists(logsFolderPath);
+
+  fs.appendFileSync(currentPath, userInput, 'utf8');
+  // fs.appendFileSync(completePath, userInput, 'utf8');
+};
+// --------------------------------------------
+// function to log suffix
+const logSuffix = async (suffix) => {
+  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+
+  await createFolderIfNotExists(logsFolderPath);
+
+  fs.appendFileSync(currentPath, suffix, 'utf8');
+  // fs.appendFileSync(completePath, suffix, 'utf8');
+};
+// --------------------------------------------
+// function to log semantic
+// const logSemantic = async (semantic) => {
+//   const currentPath = path.join(logsFolderPath, 'current_logic.txt');
+//   const completePath = path.join(logsFolderPath, 'complete_log.txt');
+
+//   await createFolderIfNotExists(logsFolderPath);
+
+//   fs.appendFileSync(currentPath, semantic, 'utf8');
+//   fs.appendFileSync(completePath, semantic, 'utf8');
+// };
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// a one for all function
+//
+const logAll = async (prePrefix, prefix, userInput, suffix) => {
+  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
+  const fullLog = `${prePrefix}${prefix}${userInput}${suffix}`;
+
+  await createFolderIfNotExists(logsFolderPath);
+
+  fs.writeFileSync(currentPath, fullLog, 'utf8');
 };
 //
 // --------------------------------------------
@@ -3049,9 +3170,14 @@ const logCommand = async (command, args) => {
 // function to log the raw output
 //
 const logOutput = async (output) => {
-    const logFilePath = path.join(pachaFolderPath, 'pacha.log.txt');
+  const logFilePath1 = path.join(pachaFolderPath, 'pacha_log.txt');
+  const logFilePath2 = path.join(logsFolderPath, 'llamacpp_logs.txt');
+
     await createFolderIfNotExists(pachaFolderPath);
-    fs.appendFileSync(logFilePath, output, 'utf8');
+    await createFolderIfNotExists(logsFolderPath);
+  
+    fs.appendFileSync(logFilePath1, output, 'utf8');
+    fs.appendFileSync(logFilePath2, output, 'utf8');
 };
 //
 // --------------------------------------------
@@ -3076,182 +3202,253 @@ function isValidModelPath(modelPath) {
 // --------------------------------------------
 // function for generating prefixes and suffixes
 //
-const getPrefixSuffix = (selectedDropDown) => {
+const getPrefixSuffix = async (selectedDropDown) => {
   let prePrefix = '';
+  // let context = '';
+  let semantic = '';
   let prefix = '';
   let suffix = '';
 
   switch (selectedDropDown) {
     case 'Custom/None':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '';
         suffix = '';
         break;
     case 'Instruction':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '### Instruction:\n';
         suffix = '\n### Response:';
         break;
     case 'Airoboros':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = 'USER: \n';
         suffix = 'ASSISTANT:';
         break;
     case 'Alpaca':
         prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n';
+        //context = '';
+        semantic = '';
         prefix = '### Instruction:\n';
         suffix = '\n\n### Response:';
         break;
     case 'based':
         prePrefix = 'You are an an AI who shares your opinions, thoughts, and feelings.\n';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
         break;
     case 'CAMEL Combined':
         prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
         break;
     case 'Chronos':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '### Instruction:\n';
         suffix = '\n### Response:';
         break;
     case 'Gorilla':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '###USER: ';
         suffix = '\n###ASSISTANT:';
         break;
     case 'GPT4 x Alpaca':
         prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n';
+        //context = '';
+        semantic = '';
         prefix = '### Instruction:\n';
         suffix = '\n\n### Response:';
         break;
     case 'GPT4 x Vicuna':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '### Instruction:\n';
         suffix = '\n\n### Response:\n';
         break;
     case 'Guanaco':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '### Human: ';
         suffix = '\n### Assistant: ';
         break;
     case 'Guanaco QLoRA':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '### Human: ';
         suffix = '\n\n### Assistant:';
         break;
     // case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
     //     prePrefix = '';
+    //     context = '';
+    //     semantic = '';
     //     prefix = '<|prompt|>';
     //     suffix = '<|endoftext|>\n<|answer|>';
     //     break;
     case 'Hippogriff':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
         break;
     case 'Karen The Editor':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
         break;
     case 'Lazarus 30B, ':
         prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request\n\n';
+        //context = '';
+        semantic = '';
         prefix = '### Instruction: ';
         suffix = '\n\n### Response:';
         break;
     case 'Manticore':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
         break;
     case 'Minotaur':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
     // case 'MPT 30B':
     //     prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
+    //     context = '';
+    //     semantic = '';
     //     prefix = '\n<|im_start|>user\n';
     //     suffix = '<|im_end|>\n<|im_start|>assistant';
+        // break;
     case 'Nous Hermes':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '### Instruction: ';
         suffix = '\n\n### Response:';
         break;
     case 'OpenAssistant LLaMA':
         prePrefix = '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
+        //context = '';
+        semantic = '';
         prefix = '<|prompter|>';
         suffix = '<|endoftext|><|assistant|>';
         break;
     case 'Orca Mini':
         prePrefix = '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
+        //context = '';
+        semantic = '';
         prefix = '\n\n### User:\n';
         suffix = '\n\n### Response:';
         break;
     case 'Samantha':
         prePrefix = 'You are Samantha, a sentient AI.\n\n';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
         break;
     case 'Stable Vicuna':
         prePrefix = 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
+        //context = '';
+        semantic = '';
         prefix = '### Human: ';
         suffix = '\n### Assistant:';
         break;
     // case 'Starchat':
     //     prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
+    //     context = '';
+    //     semantic = '';
     //     prefix = '<|user|> ';
     //     suffix = ' <|end|>\n<|assistant|>';
     //     break;
     case 'Tulu':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '<|user|>\n';
         suffix = '\n<|assistant|>\n';
         break;
     case 'Vicuna V0':
         prePrefix = 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
+        //context = '';
+        semantic = '';
         prefix = '### Human: ';
         suffix = '\n### Assistant:';
         break;
     case 'Vicuna V1.1 & V1.3':
         prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = 'ASSISTANT:';
         break;
     case 'Vigogne Chat':
         prePrefix = 'Below is a conversation between a user and an AI assistant named Vigogne.\nVigogne is an open-source AI assistant created by Zaion (https://zaion.ai/).\nVigogne is polite, emotionally aware, humble-but-knowledgeable, always providing helpful and detailed answers.\nVigogne is skilled in responding proficiently in the languages its users use and can perform a wide range of tasks such as text editing, translation, question answering, logical reasoning, coding, and many others.\nVigogne cannot receive or generate audio or visual content and cannot access the internet.\nVigogne strictly avoids discussing sensitive, offensive, illegal, ethical, or political topics and caveats when unsure of the answer.\n\n';
+        //context = '';
+        semantic = '';
         prefix = '<|UTILISATEUR|>: ';
         suffix = '\n<|ASSISTANT|>:';
         break;
     case 'Vigogne Instruct':
         prePrefix = 'Ci-dessous se trouve une instruction qui décrit une tâche à accomplir. Rédigez une réponse qui répond de manière précise à la demande.';
+        //context = '';
+        semantic = '';
         prefix = '<|UTILISATEUR|>: ';
         suffix = '\n<|ASSISTANT|>:';
         break;
     case 'WizardLM 7B':
         prePrefix = '';
+        //context = '';
+        semantic = '';
         prefix = '';
         suffix = '\n\n### Response: ';
         break;
     case 'WizardLM 13B & 30B V1.0':
         prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions. ';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = ' ASSISTANT:';
         break;
     case 'WizardLM 33B V1.0 Uncensored':
         prePrefix = 'You are a helpful AI assistant.\n\n';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = 'ASSISTANT:';
     case 'WizardVicunaLM':
         prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
+        //context = '';
+        semantic = '';
         prefix = 'USER: ';
         suffix = '\nASSISTANT:';
     default:
         break;
   }
-  return { prePrefix, prefix, suffix };
+  return { prePrefix, semantic, prefix, suffix };
 };
 //
 // --------------------------------------------
@@ -3268,7 +3465,7 @@ function saveMultiNotes() {
     const notesContent = multiNotes.getValue();
     const timestamp = new Date().toISOString();
     const timestampFile = Math.floor(Date.now() / 1000);
-    const modelInfo = `Modell: ${selectedModel}`;
+    const modelInfo = `Model: ${selectedModel}`;
     const promptTemplate = `Prompt-Template: ${dropDownOptions[dropDown.selected]}`;
     const parameters = `Args: ${args.join(' ')}`;
 
@@ -3289,19 +3486,15 @@ function saveMultiNotes() {
 
 // --------------------------------------------
 //
-
-// let promptHistory = '';
-// let chatHistory = ''; // variable to keep dialog history for the model
-// let contextualInput = ''; // variable to keep track of contextual inputs
-// let checkboxPrevState = false; // variable to keep track of the previous checkbox state
-// let modelPrompt = ''; // Variable to keep track of the conversation history for the model
-
-  const executeCommand = (text) => {
+  const executeCommand = async (text) => {
     const selectedDropDown = dropDownOptions[dropDown.selected];
-    const { prePrefix, prefix, suffix } = getPrefixSuffix(selectedDropDown);
-
-    // const prefixtextsuffix = `${prefix}${text}${suffix}`;
-
+    const { prePrefix, prefix, suffix } = await getPrefixSuffix(selectedDropDown);
+    const userInput = text; // store user input in a separate variable
+    // await logPrePrefix(prePrefix);
+    // await logPrefix(prefix);
+    // await newLogic(userInput);
+    // await logSuffix(suffix);
+    await logAll(prePrefix, prefix, userInput, suffix);
     const modelPath = path.join(modelsFolder, selectedModel);
       if (!isValidModelPath(modelPath)) {
         outputBox.insertBottom('Error: Invalid model path. Please select a .bin file.');
@@ -3309,19 +3502,19 @@ function saveMultiNotes() {
         return;
       }
 
-
       const historyEnabled = historyCheckbox.checked;
-      const storeTextEnabled = storeTextCheckbox.checked;
       let gptInput = text;
       let gptOutput = '';
   
-  
-    if (historyEnabled) {
-      gptInput = `${prePrefix}${prefix}${text}${suffix}`;
-    } else {
-      gptInput = `${prefix}${text}${suffix}`;
-    }
-    
+      if (historyEnabled) {
+        // gptInput = `${prePrefix}${prefix}${text}${suffix}`;
+        gptInput = `${prefix}${text}${suffix}`;
+
+      } else {
+        // gptInput = `${prePrefix}${prefix}${text}${suffix}`;
+        gptInput = `${prefix}${text}${suffix}`;
+
+      }
     
     const command = './main';
     const args = [
@@ -3406,50 +3599,17 @@ function saveMultiNotes() {
 
 
 let output = ''; // variable for saving the output
-let dialogHistory = ''; // variable for saving the dialogue course
+// let dialogHistory = ''; // variable for saving the dialogue course
 let isFirstChunk = true;
 let formattedOutput = '';
 
 
-      
-// const historyEnabled = historyCheckbox.checked;
-// if (historyEnabled) {
-//   if (modelPrompt === '') {
-//     modelPrompt = `${prePrefix}${prefix}${text}${suffix}`;
-//   } else {
-//     modelPrompt += `\n${prefix}${text}${suffix}`;
-//   }
-//   gptInput = modelPrompt;
-// } else {
-//   modelPrompt = `${prefix}${text}${suffix}`;
-//   gptInput = modelPrompt;
-// }
-
-// args.push('-p', `${gptInput}`);
-// const storeTextEnabled = storeTextCheckbox.checked;
 
 
 
-
-// if (historyEnabled) {
-//   if (chatHistory === '') {
-//     chatHistory = `${prePrefix}${prefixtextsuffix}`;
-//   } else {
-//     chatHistory = `${chatHistory}\n${prefixtextsuffix}`;  
-//   }
-//   gptInput = chatHistory;
-// } else {
-//   contextualInput = `${prefixtextsuffix}`;
-//   gptInput = contextualInput;
-// }
-
-// checkboxPrevState = historyEnabled;
-
-
-
-
-
-
+// ======= SUFFIZIENTER CODE ABSCHNITT ========
+//
+//
 child.stdout.on('data', (data) => {
   output += data.toString();
   gptOutput += data.toString();
@@ -3458,40 +3618,51 @@ child.stdout.on('data', (data) => {
 
   // let formattedOutput;
   if (isFirstChunk) {
-    dialogHistory += `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
+    // dialogHistory += `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
 
     // formattedOutput = `\n\u001b[1;30mYou\n\u001b[0m\u001b[1;90m${text}\u001b[0m\n\n\u001b[1;30mAssistant\u001b[0m\u001b[1;90m${userOutput}\n\u001b[0m`;
 
     formattedOutput = `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
-    
+
     isFirstChunk = false;
   } else {
-    dialogHistory += `${userOutput}`;
+    // dialogHistory += `${userOutput}`;
 
     formattedOutput = `${userOutput}`;
   }
+//
+// --------------------------------------------
 
 
 
-  // update dialogue history
-  // dialogHistory += `\nYou\n${text}\n\nAssistant${userOutput}\n`;
-  // if (historyEnabled) {
-  //   modelPrompt += `\n${data.toString()}`;
-  // if (historyEnabled) {
-  //   chatHistory += `\n${data.toString()}`;
-  // }
-
-
-  let currentContent = outputBox.getContent();
-  outputBox.setContent(currentContent + formattedOutput);
-  screen.render();
 
 
 
-  if (storeTextEnabled) {
-    saveTextHistory(`\nYou\n${text}\n\nAssistant\n${userOutput}\n`);
+// --------------------------------------------
+//
+// funktioniert nur gut für NON-history!
+  // let currentContent = outputBox.getContent();
+  // outputBox.setContent(currentContent + formattedOutput);
+  // screen.render();
+
+  if (historyEnabled) {
+    let currentContent = outputBox.getContent();
+    outputBox.setContent(currentContent + formattedOutput);
+  } else {
+    let currentContent = outputBox.getContent();
+    outputBox.setContent(currentContent + formattedOutput);
   }
+  
+  screen.render();
+  //
+  // --------------------------------------------
 
+
+
+
+
+// --------------------------------------------
+//
   logOutput(data.toString());
 
   // Reset output and gptOutput
@@ -3504,18 +3675,26 @@ child.stdout.on('data', (data) => {
 // --------------------------------------------
 
 
-child.on('close', () => {
-  writeToSessionLog(dialogLog);
-});
+
 
 
 // --------------------------------------------
 //
+child.on('close', () => {
+  writeToSessionLog(dialogLog);
+  // newLogic(userInput);
+  // logPrePrefix(prePrefix);
+  // logPrefix(prefix);
+  // logSuffix(suffix);
+});
+
+
 // Handle error output if needed
 child.stderr.on('data', (data) => { 
   logOutput(data.toString());
  }
 )
+
 
 child.on('error', (error) => {
   outputBox.insertBottom(`Fehler: ${error.message}`);
@@ -3611,7 +3790,6 @@ stopLabel.on('click', function(data) {
     child.kill('SIGINT');
   }
 });
-
 
 sendButton.on('press', () => {
   const text = inputBox.getValue();
