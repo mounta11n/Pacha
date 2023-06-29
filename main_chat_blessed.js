@@ -3090,7 +3090,7 @@ const logCommand = async (command, args) => {
 // function to log preprefix
 const logPrePrefix = async (prePrefix) => {
   const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
 
   await createFolderIfNotExists(logsFolderPath);
 
@@ -3101,7 +3101,7 @@ const logPrePrefix = async (prePrefix) => {
 // function to log prefix
 const logPrefix = async (prefix) => {
   const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
 
   await createFolderIfNotExists(logsFolderPath);
 
@@ -3112,7 +3112,7 @@ const logPrefix = async (prefix) => {
 // function to log user input
 const newLogic = async (userInput) => {
   const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
 
   await createFolderIfNotExists(logsFolderPath);
 
@@ -3123,7 +3123,7 @@ const newLogic = async (userInput) => {
 // function to log suffix
 const logSuffix = async (suffix) => {
   const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_log.txt');
+  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
 
   await createFolderIfNotExists(logsFolderPath);
 
@@ -3134,7 +3134,7 @@ const logSuffix = async (suffix) => {
 // function to log semantic
 // const logSemantic = async (semantic) => {
 //   const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-//   const completePath = path.join(logsFolderPath, 'complete_log.txt');
+//   const completePath = path.join(logsFolderPath, 'complete_logic.txt');
 
 //   await createFolderIfNotExists(logsFolderPath);
 
@@ -3490,11 +3490,13 @@ function saveMultiNotes() {
     const selectedDropDown = dropDownOptions[dropDown.selected];
     const { prePrefix, prefix, suffix } = await getPrefixSuffix(selectedDropDown);
     const userInput = text; // store user input in a separate variable
-    // await logPrePrefix(prePrefix);
-    // await logPrefix(prefix);
-    // await newLogic(userInput);
-    // await logSuffix(suffix);
+
+    const historyEnabled = historyCheckbox.checked;
+    const checkBoxPath = historyEnabled ? path.join(logsFolderPath, 'complete_logic.txt') : path.join(logsFolderPath, 'current_logic.txt');
+  
     await logAll(prePrefix, prefix, userInput, suffix);
+
+    // await logAll(prePrefix, prefix, userInput, suffix);
     const modelPath = path.join(modelsFolder, selectedModel);
       if (!isValidModelPath(modelPath)) {
         outputBox.insertBottom('Error: Invalid model path. Please select a .bin file.');
@@ -3502,7 +3504,7 @@ function saveMultiNotes() {
         return;
       }
 
-      const historyEnabled = historyCheckbox.checked;
+      // const historyEnabled = historyCheckbox.checked;
       let gptInput = text;
       let gptOutput = '';
   
@@ -3592,14 +3594,15 @@ function saveMultiNotes() {
     } else if (radioSet.children[2].checked) {
       args.push('--mirostat', '2');
     }
-    args.push('-p', `${gptInput}`);
+    // args.push('-p', `${gptInput}`);
+    // args.push('-f', currentPath);
+    args.push('-f', checkBoxPath);
     logCommand(command, args);
 
     child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
 
 
 let output = ''; // variable for saving the output
-// let dialogHistory = ''; // variable for saving the dialogue course
 let isFirstChunk = true;
 let formattedOutput = '';
 
@@ -3618,16 +3621,12 @@ child.stdout.on('data', (data) => {
 
   // let formattedOutput;
   if (isFirstChunk) {
-    // dialogHistory += `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
-
     // formattedOutput = `\n\u001b[1;30mYou\n\u001b[0m\u001b[1;90m${text}\u001b[0m\n\n\u001b[1;30mAssistant\u001b[0m\u001b[1;90m${userOutput}\n\u001b[0m`;
 
     formattedOutput = `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
 
     isFirstChunk = false;
   } else {
-    // dialogHistory += `${userOutput}`;
-
     formattedOutput = `${userOutput}`;
   }
 //
