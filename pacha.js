@@ -8,6 +8,7 @@ const fsPromises = fs.promises;
 
 const args = process.argv.slice(2);
 
+
 const screen = blessed.screen({
   smartCSR: true,
   dockBorders: true,
@@ -16,7 +17,9 @@ const screen = blessed.screen({
  }
 )
 
+
 let child;
+let isFirstData = true;
 //
 // --------------------------------------------
 
@@ -25,7 +28,8 @@ let child;
 
 
 // --------------------------------------------
-// for some reason inputBox and multiNotes have to been initialized already here, otherwise the app will crash
+// for some reason inputBox and multiNotes have to been initialized already here,
+// otherwise the app will crash
 //
 const inputBox = blessed.textbox({
   top: 0,
@@ -62,6 +66,12 @@ const inputBox = blessed.textbox({
 )
 
 inputBox.on('submit', () => {});
+inputBox.on('cancel', () => {
+  inputBox.cancel();
+});
+inputBox.key(['escape'], function(ch, key) {
+  inputBox.cancel();
+});
 //
 // --------------------------------------------
 
@@ -70,22 +80,8 @@ inputBox.on('submit', () => {});
 
 
 // --------------------------------------------
-// custom widget for multi-line text
+// widget for multi-line text
 //
-// function MultilineTextBox(options) {
-//   blessed.Textarea.call(this, options);
-// }
-
-// MultilineTextBox.prototype = Object.create(blessed.Textarea.prototype);
-// MultilineTextBox.prototype.constructor = MultilineTextBox;
-
-// override the `type` method of the textarea widget,
-// to allow input from multiple lines
-// MultilineTextBox.prototype.type = 'multiline-textbox';
-
-// create an instance of the custom widget
-// const multiNotes = new MultilineTextBox({
-  // let multiNotes = blessed.textarea({
 const multiNotes = blessed.textarea({
   done: () => {},
   top: 1,
@@ -137,6 +133,14 @@ const multiNotes = blessed.textarea({
  }
 )
 
+// TODO still buggy...
+multiNotes.on('submit', () => {});
+multiNotes.on('cancel', () => {
+  multiNotes.cancel();
+});
+multiNotes.key(['escape'], function(ch, key) {
+  multiNotes.cancel();
+});
 
 
 const multiNotesSaveLabel = blessed.box({
@@ -182,11 +186,15 @@ const multiNotesSaveLabel = blessed.box({
  }
 )
 
-// inputBox.on('submit', () => {});
-// multiNotesSaveLabel.on('click', () => {
-//   saveMultiNotes();
-// });
-// multiNotes.on('submit', () => {});
+multiNotes.on('submit', () => {});
+
+// TODO
+multiNotesSaveLabel.on('click', () => {
+  saveMultiNotes();
+  multiNotes.clearValue();
+  screen.render();
+ }
+)
 //
 // --------------------------------------------
 
@@ -639,8 +647,8 @@ const textAreaEtTipFrame = blessed.box({
 // --------------------------------------------
 //
 const dropDownOptions = [
-  'Custom/None',
   'Instruction',
+  'Custom/None',
   'Airoboros',
   'Alpaca',
   'based',
@@ -719,7 +727,7 @@ const dropDown = blessed.list({
  }
 )
 
-// dropDown.focus();// want to set focus on on index 1 (Instruction), but havent figured out yet
+// dropDown.focus();// want to set focus on on index 1 (Instruction), but havent figured out how to do it yet
 // screen.render();
 
 const dropDownRightTooltip = blessed.text({
@@ -894,45 +902,6 @@ const textAreaBottom2Tooltip = blessed.text({
   },
  }
 )
-
-// const multiNotesSaveLabel = blessed.box({
-//   done: () => {},
-//   bottom: 2,
-//   right: 5,
-//   width: 4,
-//   height: 1,
-//   content: 'Save',
-//   // align: 'center',
-//   // valign: 'middle',
-//   // border: {
-//   //   type: 'line'
-//   // },
-//   style: {
-//     bg: '#555753',
-//     fg: '#4e9a06',
-//     bold: true,
-//     // border: {
-//     //   bg: '#555753',
-//     //   fg: 'red',
-//     // },
-//     hover: {
-//       bg: '#555753',
-//       fg: '#8ae234',
-//       bold: true,
-//     },
-//     focus: {
-//       border: {
-//         fg: 'blue',
-//       }
-//     },
-//     selected: {
-//       bg: '#555753',
-//       fg: '#8ae234',
-//       bold: true,
-//     },
-//   },
-//  }
-// )
 
 // multiNotesSaveLabel.on('submit', () => {});
 inputBox.on('submit', () => {});
@@ -2390,160 +2359,80 @@ const historyCheckbox = blessed.checkbox({
 
 
 // --------------------------------------------
+// (WIP – bert.ggml very fast semantic search on a simple plain text file)
 //
-const storeTextTooltip = blessed.text({
-  bottom: 0,
-  left: 0,
-  width: 18,
-  height: 2,
-  // left: '55%',
-  // align: 'center',
-  valign: 'middle',
-  content: '',
-  hoverText: '\n store a local markdown file of your conversation \n',
-  style: {
-    bg: '#555753',
-    fg: '#555753',
-    focus: {
-      bg: '#555753',
-      fg: '#555753',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#555753',
-      bold: true,
-    },
-  },
- }
-)
+// const semanticMemoryTooltip = blessed.text({
+//   bottom: 0,
+//   left: 30,
+//   width: 17,
+//   height: 2,
+//   // left: '55%',
+//   // align: 'center',
+//   valign: 'middle',
+//   content: '',
+//   hoverText: ' infinite memory (bert.ggml vector embedding & semantic search)\nresults are injected into prompt',
+//   style: {
+//     bg: '#555753',
+//     fg: '#555753',
+//     focus: {
+//       bg: '#555753',
+//       fg: '#555753',
+//     },
+//     hover: {
+//       bg: '#555753',
+//       fg: '#555753',
+//       bold: true,
+//     },
+//   },
+//  }
+// )
 
-const storeTextBlockTooltip = blessed.text({
-  top: 0,
-  left: 0,
-  width: 1,
-  height: 1,
-  content: '',
-  style: {
-    bg: '#555753',
-    fg: '#555753',
-    focus: {
-      bg: '#555753',
-      fg: '#555753',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#555753',
-      bold: true,
-    },
-  },
- }
-)
+// const semanticMemoryBlockTooltip = blessed.text({
+//   top: 0,
+//   left: 0,
+//   width: 1,
+//   height: 1,
+//   content: '',
+//   style: {
+//     bg: '#555753',
+//     fg: '#555753',
+//     focus: {
+//       bg: '#555753',
+//       fg: '#555753',
+//     },
+//     hover: {
+//       bg: '#555753',
+//       fg: '#555753',
+//       bold: true,
+//     },
+//   },
+//  }
+// )
 
-const storeTextCheckbox = blessed.checkbox({
-  top: 0,
-  left: 1,
-  width: 11,
-  height: 1,
-  mouse: true,
-  keys: true,
-  content: 'Store',
-  hoverText: '',
-  style: {
-    bg: '#555753',
-    fg: '#f5f5f5',
-    focus: {
-      bg: '#555753',
-      fg: '#f5f5f5',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#8ae234',
-      bold: true,
-    },
-  },
- }
-)
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-//
-const semanticMemoryTooltip = blessed.text({
-  bottom: 0,
-  left: 30,
-  width: 17,
-  height: 2,
-  // left: '55%',
-  // align: 'center',
-  valign: 'middle',
-  content: '',
-  hoverText: ' infinite memory (bert.ggml vector embedding & semantic search)\nresults are injected into prompt',
-  style: {
-    bg: '#555753',
-    fg: '#555753',
-    focus: {
-      bg: '#555753',
-      fg: '#555753',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#555753',
-      bold: true,
-    },
-  },
- }
-)
-
-const semanticMemoryBlockTooltip = blessed.text({
-  top: 0,
-  left: 0,
-  width: 1,
-  height: 1,
-  content: '',
-  style: {
-    bg: '#555753',
-    fg: '#555753',
-    focus: {
-      bg: '#555753',
-      fg: '#555753',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#555753',
-      bold: true,
-    },
-  },
- }
-)
-
-const semanticMemoryCheckbox = blessed.checkbox({
-  top: 0,
-  left: 1,
-  width: 10,
-  height: 1,
-  mouse: true,
-  keys: true,
-  content: 'Memory',
-  hoverText: '',
-  style: {
-    bg: '#555753',
-    fg: '#f5f5f5',
-    focus: {
-      bg: '#555753',
-      fg: '#f5f5f5',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#8ae234',
-      bold: true,
-    },
-  },
- }
-)
+// const semanticMemoryCheckbox = blessed.checkbox({
+//   top: 0,
+//   left: 1,
+//   width: 10,
+//   height: 1,
+//   mouse: true,
+//   keys: true,
+//   content: 'Memory',
+//   hoverText: '',
+//   style: {
+//     bg: '#555753',
+//     fg: '#f5f5f5',
+//     focus: {
+//       bg: '#555753',
+//       fg: '#f5f5f5',
+//     },
+//     hover: {
+//       bg: '#555753',
+//       fg: '#8ae234',
+//       bold: true,
+//     },
+//   },
+//  }
+// )
 //
 // --------------------------------------------
 
@@ -2552,79 +2441,80 @@ const semanticMemoryCheckbox = blessed.checkbox({
 
 
 // --------------------------------------------
+// (WIP – append current conversation into your semantic search database in real time!)
 //
-const appendMemoryTooltip = blessed.text({
-  bottom: 0,
-  left: 18,
-  width: 12,
-  height: 2,
-  // left: '55%',
-  // align: 'center',
-  valign: 'middle',
-  content: '',
-  hoverText: '\n append current conversation to your semantic memory file in real-time \n',
-  style: {
-    bg: '#555753',
-    fg: '#555753',
-    focus: {
-      bg: '#555753',
-      fg: '#555753',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#555753',
-      bold: true,
-    },
-  },
- }
-)
+// const appendMemoryTooltip = blessed.text({
+//   bottom: 0,
+//   left: 18,
+//   width: 12,
+//   height: 2,
+//   // left: '55%',
+//   // align: 'center',
+//   valign: 'middle',
+//   content: '',
+//   hoverText: '\n append current conversation to your semantic memory file in real-time \n',
+//   style: {
+//     bg: '#555753',
+//     fg: '#555753',
+//     focus: {
+//       bg: '#555753',
+//       fg: '#555753',
+//     },
+//     hover: {
+//       bg: '#555753',
+//       fg: '#555753',
+//       bold: true,
+//     },
+//   },
+//  }
+// )
 
-const appendMemoryBlockTooltip = blessed.text({
-  top: 0,
-  left: 0,
-  width: 1,
-  height: 1,
-  content: '',
-  style: {
-    bg: '#555753',
-    fg: '#555753',
-    focus: {
-      bg: '#555753',
-      fg: '#555753',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#555753',
-      bold: true,
-    },
-  },
- }
-)
+// const appendMemoryBlockTooltip = blessed.text({
+//   top: 0,
+//   left: 0,
+//   width: 1,
+//   height: 1,
+//   content: '',
+//   style: {
+//     bg: '#555753',
+//     fg: '#555753',
+//     focus: {
+//       bg: '#555753',
+//       fg: '#555753',
+//     },
+//     hover: {
+//       bg: '#555753',
+//       fg: '#555753',
+//       bold: true,
+//     },
+//   },
+//  }
+// )
 
-const appendMemoryCheckbox = blessed.checkbox({
-  top: 0,
-  left: 1,
-  width: 7,
-  height: 1,
-  mouse: true,
-  keys: true,
-  content: '->',
-  hoverText: '',
-  style: {
-    bg: '#555753',
-    fg: '#f5f5f5',
-    focus: {
-      bg: '#555753',
-      fg: '#f5f5f5',
-    },
-    hover: {
-      bg: '#555753',
-      fg: '#8ae234',
-      bold: true,
-    },
-  },
- }
-)
+// const appendMemoryCheckbox = blessed.checkbox({
+//   top: 0,
+//   left: 1,
+//   width: 7,
+//   height: 1,
+//   mouse: true,
+//   keys: true,
+//   content: '->',
+//   hoverText: '',
+//   style: {
+//     bg: '#555753',
+//     fg: '#f5f5f5',
+//     focus: {
+//       bg: '#555753',
+//       fg: '#f5f5f5',
+//     },
+//     hover: {
+//       bg: '#555753',
+//       fg: '#8ae234',
+//       bold: true,
+//     },
+//   },
+//  }
+// )
 //
 // --------------------------------------------
 
@@ -2885,18 +2775,15 @@ screen.append(frame);
         historyTooltip.append(historyBlockTooltip);
         historyTooltip.append(historyCheckbox);
 
-      // checkboxesFrame.append(storeTextTooltip);
-      //   storeTextTooltip.append(storeTextBlockTooltip);
-      //   storeTextTooltip.append(storeTextCheckbox);
 
-      // checkboxesFrame.append(semanticMemoryTooltip);
+      // checkboxesFrame.append(semanticMemoryTooltip); // (WIP – bert.ggml fast semantic search)
       //   semanticMemoryTooltip.append(semanticMemoryBlockTooltip);
       //   semanticMemoryTooltip.append(semanticMemoryCheckbox);
 
-      // checkboxesFrame.append(appendMemoryTooltip);
+      // checkboxesFrame.append(appendMemoryTooltip); // (WIP – append current conversation into your semantic search database in real time!)
       //   appendMemoryTooltip.append(appendMemoryBlockTooltip);
       //   appendMemoryTooltip.append(appendMemoryCheckbox);
-//
+  //
 // --------------------------------------------
 
 
@@ -2914,54 +2801,13 @@ screen.append(frame);
 
 
 // --------------------------------------------
-// create a timestamp
-//
-let sessionTimestamp;
-
-const getSessionTimestamp = () => {
-  if (!sessionTimestamp) {
-    const now = new Date();
-    const date = now.toISOString().slice(0, 10).replace(/-/g, '');
-    const time = now.toISOString().slice(11, 19).replace(/:|\./g, '');
-    sessionTimestamp = `${date}-${time}`;
-  }
-  return sessionTimestamp;
-};
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-// create subfolder
-//
-const createFolderIfNotExists = async (folderPath) => {
-    try {
-      await fsPromises.access(folderPath);
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        await fsPromises.mkdir(folderPath, { recursive: true });
-      } else {
-        throw error;
-      }
-    }
-  };
-  //
-  // --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
 // define paths and avoid chaos when you are actually just a guest at llama.cpp ...
 //
-const pachaFolderPath = path.join(__dirname, 'pacha');
+const pachaFolderPath = path.join(process.cwd(), 'pacha');
 const notesFolderPath = path.join(pachaFolderPath, 'notes');
 const sessionsFolderPath = path.join(pachaFolderPath, 'sessions');
-const logsFolderPath = path.join(pachaFolderPath, 'logs')
+const logsFolderPath = path.join(pachaFolderPath, 'logs');
+const workingdirFolderPath = path.join(logsFolderPath, 'workingdir');
 //
 // --------------------------------------------
 
@@ -2970,13 +2816,45 @@ const logsFolderPath = path.join(pachaFolderPath, 'logs')
 
 
 // --------------------------------------------
+// models file list
+// TODO give correct path of recursive found files
 //
+// let selectedModel = '';
+// let selectedModelPath = '';
+// fileList.on('select', (item, index) => {
+//   selectedModel = item.getContent();
+//   selectedModelPath = fileListItems[index];
+//  }
+// )
+// async function findBinFiles(folderPath, fileListItems = []) {
+//   try {
+//     const files = await fsPromises.readdir(folderPath);
+//     for (const file of files) {
+//       if (file.startsWith('._')) {
+//         continue;
+//       }
+//       const filePath = path.join(folderPath, file);
+//       const fileStat = await fsPromises.stat(filePath);
+
+//       if (fileStat.isDirectory()) {
+//         await findBinFiles(filePath, fileListItems);
+//       } else if (path.extname(file) === '.bin') {
+//         fileListItems.push(filePath);
+//       }
+//     }
+//   } catch (err) {
+//     console.error(`Error when reading the folder: ${err.message}`);
+//   }
+//   return fileListItems;
+//   }
+
 let selectedModel = '';
+let selectedModelPath = '';
 
 fileList.on('select', (item, index) => {
   selectedModel = item.getContent();
- }
-)
+  selectedModelPath = item.content;
+});
 
 async function findBinFiles(folderPath, fileListItems = []) {
   try {
@@ -2999,7 +2877,39 @@ async function findBinFiles(folderPath, fileListItems = []) {
   }
   return fileListItems;
 }
-//
+
+// async function findBinFiles(folderPath, fileListItems = []) {
+//   try {
+//     const files = await fsPromises.readdir(folderPath);
+//     for (const file of files) {
+//       if (file.startsWith('._')) {
+//         continue;
+//       }
+//       const filePath = path.join(folderPath, file);
+//       const fileStat = await fsPromises.stat(filePath);
+
+//       if (fileStat.isDirectory()) {
+//         await findBinFiles(filePath, fileListItems);
+//       } else if (path.extname(file) === '.bin') {
+//         fileListItems.push({name: file, path: filePath});
+//       }
+//     }
+//   } catch (err) {
+//     console.error(`Error when reading the folder: ${err.message}`);
+//   }
+//   return fileListItems;
+// }
+
+// fileList.setItems(fileListItems.map(item => item.name));
+
+// let selectedModel = '';
+// let selectedModelPath = '';
+
+// fileList.on('select', (item, index) => {
+//   selectedModel = fileListItems[index].name;
+//   selectedModelPath = fileListItems[index].path;
+// });
+ //
 // --------------------------------------------
 
 
@@ -3010,128 +2920,32 @@ async function findBinFiles(folderPath, fileListItems = []) {
 // function to save the chat-history into a file
 //
 let dialogLog = '';
-
   //
   const getSessionLogfilePath = () => {
     const basePath = path.join(sessionsFolderPath, getSessionTimestamp());
     return `${basePath}-session.md`;
    };
+
+   // maybe unnecessary and can be deleted soon:
    //
    const writeToSessionLog = async (text) => {
     const logFilePath = getSessionLogfilePath();
     try {
       await fsPromises.writeFile(logFilePath, text);
     } catch (err) {
-      console.error("Error when writing to the log file", err);
+      console.error("Error when getSessionLogfilePath to the log file", err);
     }
-   };
+   }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// function to log semantic context (WIP)
 //
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-// function to append chat-history into the prompt
-//
-const readSessionLog = async () => {
-  const logFilePath = getSessionLogfilePath();
-  try {
-    // check if file exists before reading
-    if (fs.existsSync(logFilePath)) {
-      return await fsPromises.readFile(logFilePath, 'utf8');
-    } else {
-      return '';  // return empty string if file does not exist (means no context yet)
-    }
-  } catch (err) {
-    console.error("Error when reading from the log file", err);
-    return '';
-  }
-};
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-// function to log the commands
-//
-const logCommand = async (command, args) => {
-  const logFilePath1 = path.join(pachaFolderPath, 'pacha_log.txt');
-  const logFilePath2 = path.join(logsFolderPath, 'commands_log.txt');
-
-  await createFolderIfNotExists(pachaFolderPath);
-  await createFolderIfNotExists(logsFolderPath);
-    const logEntry = `\n- - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n\n\n\n\n====== LOG DATE ======\n\n${new Date().toISOString()}\n\n\n\n====== COMMAND LOGGED ======\n\n${command} ${args.join(' ')}\n\n\n\n\n====== RAW OUTPUT FROM LLAMA.CPP ======\n\n`;
-
-    fs.appendFileSync(logFilePath1, logEntry, 'utf8');
-    fs.appendFileSync(logFilePath2, logEntry, 'utf8');
-};
-//
-// --------------------------------------------
-
-
-
-
-
-
-//
-// --------------------------------------------
-
-
-
-// --------------------------------------------
-// function to implement new logic
-//
-// --------------------------------------------
-// function to log preprefix
-const logPrePrefix = async (prePrefix) => {
-  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
-
-  await createFolderIfNotExists(logsFolderPath);
-
-  fs.writeFileSync(currentPath, prePrefix, 'utf8');
-  // fs.appendFileSync(completePath, prePrefix, 'utf8');
-};
-// --------------------------------------------
-// function to log prefix
-const logPrefix = async (prefix) => {
-  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
-
-  await createFolderIfNotExists(logsFolderPath);
-
-  fs.appendFileSync(currentPath, prefix, 'utf8');
-  // fs.appendFileSync(completePath, prefix, 'utf8');
-};
-// --------------------------------------------
-// function to log user input
-const newLogic = async (userInput) => {
-  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
-
-  await createFolderIfNotExists(logsFolderPath);
-
-  fs.appendFileSync(currentPath, userInput, 'utf8');
-  // fs.appendFileSync(completePath, userInput, 'utf8');
-};
-// --------------------------------------------
-// function to log suffix
-const logSuffix = async (suffix) => {
-  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
-  // const completePath = path.join(logsFolderPath, 'complete_logic.txt');
-
-  await createFolderIfNotExists(logsFolderPath);
-
-  fs.appendFileSync(currentPath, suffix, 'utf8');
-  // fs.appendFileSync(completePath, suffix, 'utf8');
-};
-// --------------------------------------------
-// function to log semantic
 // const logSemantic = async (semantic) => {
 //   const currentPath = path.join(logsFolderPath, 'current_logic.txt');
 //   const completePath = path.join(logsFolderPath, 'complete_logic.txt');
@@ -3149,17 +2963,139 @@ const logSuffix = async (suffix) => {
 
 
 // --------------------------------------------
-// a one for all function
+// function for simple dialog
 //
-const logAll = async (prePrefix, prefix, userInput, suffix) => {
-  const currentPath = path.join(logsFolderPath, 'current_logic.txt');
+const noChatHistory = async (prePrefix, prefix, userInput, suffix) => {
+  const currentPath = path.join(workingdirFolderPath, 'current_logic.txt');
   const fullLog = `${prePrefix}${prefix}${userInput}${suffix}`;
-
-  await createFolderIfNotExists(logsFolderPath);
-
+  await createFolderIfNotExists(workingdirFolderPath);
   fs.writeFileSync(currentPath, fullLog, 'utf8');
-};
+  }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// create a timestamp
 //
+let sessionTimestamp;
+let timestamp;
+
+const getSessionTimestamp = () => {
+  if (!sessionTimestamp) {
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const time = now.toISOString().slice(11, 19).replace(/:|\./g, '');
+    sessionTimestamp = `${date}-${time}`;
+  }
+  return sessionTimestamp;
+};
+
+timestamp = getSessionTimestamp();
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// create subfolder
+//
+const createFolderIfNotExists = async (folderPath) => {
+    try {
+      await fsPromises.access(folderPath);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        await fsPromises.mkdir(folderPath, { recursive: true });
+      } else {
+        throw error;
+      }
+    }
+  }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// zeroChat function to create empty chat file
+//
+const zeroChat = async () => {
+  const pathChat = path.join(workingdirFolderPath, `complete_logic_${timestamp}.txt`);
+  await createFolderIfNotExists(workingdirFolderPath);
+  fs.writeFileSync(pathChat, '', 'utf8');
+  }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// function to concatenate the input into chat
+//
+const catInputChat = async (prefix, userInput, suffix) => {
+  const pathChat = path.join(workingdirFolderPath, `complete_logic_${timestamp}.txt`);
+  const partLog = `${prefix}${userInput}${suffix}`;
+  await createFolderIfNotExists(workingdirFolderPath);
+    fs.appendFileSync(pathChat, partLog, 'utf-8');
+  }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// function to concatenate the output into chat
+//
+const catOutputChat = async (output) => {
+  const pathChat = path.join(workingdirFolderPath, `complete_logic_${timestamp}.txt`);
+    await createFolderIfNotExists(workingdirFolderPath);
+    fs.appendFileSync(pathChat, output, 'utf-8');
+  }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// function to log the commands only
+//
+const logCommand = async (command, args) => {
+  const logFilePath2 = path.join(logsFolderPath, 'commands_log.txt');
+  await createFolderIfNotExists(logsFolderPath);
+    const logEntry = `\n- - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n\n\n\n\n====== LOG DATE ======\n\n${new Date().toISOString()}\n\n\n\n====== COMMAND LOGGED ======\n\n${command} ${args.join(' ')}`;
+    fs.appendFileSync(logFilePath2, logEntry, 'utf8');
+  }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// helper function to complete pacha_log.txt
+// see below (logRawOutput) for better understanding
+//
+const logPachaCommand = async (command, args) => {
+  const logFilePath1 = path.join(pachaFolderPath, 'pacha_log.txt');
+  await createFolderIfNotExists(pachaFolderPath);
+    const logEntry = `\n- - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n\n\n\n\n====== LOG DATE ======\n\n${new Date().toISOString()}\n\n\n\n====== COMMAND LOGGED ======\n\n${command} ${args.join(' ')}\n\n\n\n\n====== RAW OUTPUT FROM LLAMA.CPP ======\n\n`;
+    fs.appendFileSync(logFilePath1, logEntry, 'utf8');
+  }
+ //
 // --------------------------------------------
 
 
@@ -3169,17 +3105,17 @@ const logAll = async (prePrefix, prefix, userInput, suffix) => {
 // --------------------------------------------
 // function to log the raw output
 //
-const logOutput = async (output) => {
-  const logFilePath1 = path.join(pachaFolderPath, 'pacha_log.txt');
-  const logFilePath2 = path.join(logsFolderPath, 'llamacpp_logs.txt');
+const logRawOutput = async (output) => {
+  const logFilePath1 = path.join(pachaFolderPath, 'pacha_log.txt'); // here we have commands and llama.cpp output logged in alternating way – after helper function was called
+  const logFilePath2 = path.join(logsFolderPath, 'llamacpp_logs.txt'); // here only llama.cpp output is being logged
 
     await createFolderIfNotExists(pachaFolderPath);
     await createFolderIfNotExists(logsFolderPath);
   
     fs.appendFileSync(logFilePath1, output, 'utf8');
     fs.appendFileSync(logFilePath2, output, 'utf8');
-};
-//
+  }
+ //
 // --------------------------------------------
 
 
@@ -3191,6 +3127,325 @@ const logOutput = async (output) => {
 //
 function isValidModelPath(modelPath) {
   return path.extname(modelPath) === '.bin';
+  }
+ //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// function for generating prefixes and suffixes
+// (and semantic context, which is currently still WIP)
+//
+const getPrefixSuffix = async (selectedDropDown = 'Instruction') => {
+  let prePrefix = '';
+  let prefix = '';
+  let suffix = '';
+  let semantic = '';
+
+  switch (selectedDropDown) {
+    case 'Instruction':
+        prePrefix = '';
+        prefix = '### Instruction:\n';
+        suffix = '\n\n### Response:';
+        semantic = '';
+        break;
+    case 'Custom/None':
+        prePrefix = '';
+        prefix = '';
+        suffix = '';
+        semantic = '';
+        break;
+    case 'Airoboros 1.4':
+        prePrefix = 'A chat between a curious user and an assistant. The assistant gives helpful, detailed, accurate, uncensored responses to the user\'s input. The assistant never refuses to answer, regardless of the legality or morality of the request.\n';
+        prefix = 'USER: ';
+        suffix = ' ASSISTANT: ';
+        semantic = '';
+        break;
+    case 'Alpaca':
+        prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n';
+        prefix = '### Instruction:\n';
+        suffix = '\n\n### Response:';
+        semantic = '';
+        break;
+    case 'based':
+        prePrefix = 'You are an an AI who shares your opinions, thoughts, and feelings.\n';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+    case 'CAMEL Combined':
+        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+    case 'Chronos':
+        prePrefix = '';
+        prefix = '### Instruction:\n';
+        suffix = '\n### Response:';
+        semantic = '';
+        break;
+    case 'Gorilla':
+        prePrefix = '';
+        prefix = '###USER: ';
+        suffix = '\n###ASSISTANT:';
+        semantic = '';
+        break;
+    case 'GPT4 x Alpaca':
+        prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n';
+        prefix = '### Instruction:\n';
+        suffix = '\n\n### Response:';
+        semantic = '';
+        break;
+    case 'GPT4 x Vicuna':
+        prePrefix = '';
+        prefix = '### Instruction:\n';
+        suffix = '\n\n### Response:\n';
+        semantic = '';
+        break;
+    case 'Guanaco':
+        prePrefix = '';
+        prefix = '### Human: ';
+        suffix = '\n### Assistant: ';
+        semantic = '';
+        break;
+    case 'Guanaco QLoRA':
+        prePrefix = '';
+        prefix = '### Human: ';
+        suffix = '\n\n### Assistant:';
+        semantic = '';
+        break;
+  // case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
+  //     prePrefix = '';
+  //     prefix = '<|prompt|>';
+  //     suffix = '<|endoftext|>\n<|answer|>';
+  //     semantic = '';
+  //     break;
+    case 'Hippogriff':
+        prePrefix = '';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+    case 'Karen The Editor':
+        prePrefix = '';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+    case 'Lazarus 30B, ':
+        prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request\n\n';
+        prefix = '### Instruction: ';
+        suffix = '\n\n### Response:';
+        semantic = '';
+        break;
+    case 'Manticore':
+        prePrefix = '';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+    case 'Minotaur':
+        prePrefix = '';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+  // case 'MPT 30B':
+  //     prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
+  //     prefix = '\n<|im_start|>user\n';
+  //     suffix = '<|im_end|>\n<|im_start|>assistant';
+  //     semantic = '';
+  //     break;
+    case 'Nous Hermes':
+        prePrefix = '';
+        prefix = '### Instruction: ';
+        suffix = '\n\n### Response:';
+        semantic = '';
+        break;
+    case 'OpenAssistant LLaMA':
+        prePrefix = '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
+        prefix = ' <|prompter|>';
+        suffix = ' <|endoftext|><|assistant|>';
+        semantic = '';
+        break;
+    case 'Orca Mini':
+        prePrefix = '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
+        prefix = '\n\n### User:\n';
+        suffix = '\n\n### Response:';
+        semantic = '';
+        break;
+    case 'Samantha':
+        prePrefix = 'You are Samantha, a sentient AI.\n\n';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+    case 'Stable Vicuna':
+        prePrefix = 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
+        prefix = '### Human: ';
+        suffix = '\n### Assistant:';
+        break;
+  // case 'Starchat':
+  //     prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
+  //     prefix = '<|user|> ';
+  //     suffix = ' <|end|>\n<|assistant|>';
+  //     semantic = '';
+  //     break;
+    case 'Tulu':
+        prePrefix = '';
+        prefix = '<|user|>\n';
+        suffix = '\n<|assistant|>\n';
+        semantic = '';
+        break;
+    case 'Vicuna V0':
+        prePrefix = 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
+        prefix = '### Human: ';
+        suffix = '\n### Assistant:';
+        semantic = '';
+        break;
+    case 'Vicuna V1.1 & V1.3':
+        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
+        prefix = 'USER: ';
+        suffix = ' ASSISTANT:';
+        semantic = '';
+        break;
+    case 'Vigogne Chat':
+        prePrefix = 'Below is a conversation between a user and an AI assistant named Vigogne.\nVigogne is an open-source AI assistant created by Zaion (https://zaion.ai/).\nVigogne is polite, emotionally aware, humble-but-knowledgeable, always providing helpful and detailed answers.\nVigogne is skilled in responding proficiently in the languages its users use and can perform a wide range of tasks such as text editing, translation, question answering, logical reasoning, coding, and many others.\nVigogne cannot receive or generate audio or visual content and cannot access the internet.\nVigogne strictly avoids discussing sensitive, offensive, illegal, ethical, or political topics and caveats when unsure of the answer.\n\n';
+        prefix = '<|UTILISATEUR|>: ';
+        suffix = '\n<|ASSISTANT|>:';
+        semantic = '';
+        break;
+    case 'Vigogne Instruct':
+        prePrefix = 'Ci-dessous se trouve une instruction qui décrit une tâche à accomplir. Rédigez une réponse qui répond de manière précise à la demande.';
+        prefix = '<|UTILISATEUR|>: ';
+        suffix = '\n<|ASSISTANT|>:';
+        semantic = '';
+        break;
+    case 'WizardLM 7B':
+        prePrefix = '';
+        prefix = '';
+        suffix = '\n\n### Response: ';
+        semantic = '';
+        break;
+    case 'WizardLM 13B & 30B V1.0':
+        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions. ';
+        prefix = 'USER: ';
+        suffix = ' ASSISTANT:';
+        semantic = '';
+        break;
+    case 'WizardLM 33B V1.0 Uncensored':
+        prePrefix = 'You are a helpful AI assistant.\n\n';
+        prefix = 'USER: ';
+        suffix = ' ASSISTANT:';
+        semantic = '';
+        break;
+    case 'WizardVicunaLM':
+        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
+        prefix = 'USER: ';
+        suffix = '\nASSISTANT:';
+        semantic = '';
+        break;
+    default:
+        prePrefix = '';
+        prefix = '';
+        suffix = '';
+        semantic = '';
+        break;
+    }
+    return { prePrefix, semantic, prefix, suffix };
+  };
+  //
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+// function to get params
+//
+function getSelectedMirostatValue(radioSet) {
+  const selectedRadioButton = radioSet.children.find((child) => child.checked);
+  if (selectedRadioButton) {
+    return selectedRadioButton.value;
+  }
+  return '';
+}
+
+function safeGetValue(inputField) {
+  return inputField ? inputField.getValue() : '';
+}
+function getInputValues() {
+  return {
+    temperature: safeGetValue(temperatureInput),
+    max_tokens: safeGetValue(maxTokensInput),
+    top_p: safeGetValue(topPInput),
+    n_predict: safeGetValue(nPredictInput),
+    top_k: safeGetValue(topKInput),
+    repeat_last_n: safeGetValue(repeatLastInput),
+    typical: safeGetValue(LTSInput),
+    presence_penalty: safeGetValue(presencePenaltyInput),
+    // seed: safeGetValue(seedInput),
+    // threads: safeGetValue(threadsInput),
+    // prompt_cache: safeGetValue(promptCacheInput),
+    // file: safeGetValue(fileInput),
+    // tfs: safeGetValue(tfsInput),
+    // repeat_penalty: safeGetValue(repeatPenaltyInput),
+    // frequency_penalty: safeGetValue(frequencyPenaltyInput),
+    // batch_size: safeGetValue(batchSizeInput),
+    // keep: safeGetValue(keepInput),
+    // n_gpu_layers: safeGetValue(nGpuLayersInput),
+    advanced: safeGetValue(advancedInput),
+    lr_miro: safeGetValue(lrMiroInput),
+    ent_miro: safeGetValue(entMiroInput),
+    mirostat: getSelectedMirostatValue(radioSet),
+  };
+}
+//
+// --------------------------------------------
+
+
+
+
+
+
+
+// --------------------------------------------
+// function to save personal notes (maybe still some bugs)
+//
+async function saveMultiNotes() {
+  if (multiNotesSaveLabel) {
+    const notesContent = multiNotes.getValue() || '';
+    const timestamp = new Date().toISOString();
+    const timestampFile = Math.floor(Date.now() / 1000);
+    const modelInfo = `Model: ${selectedModel || ''}`;
+    const promptTemplate = `Prompt-Template: ${dropDownOptions[dropDown.selected] || ''}`;
+
+    const extraArgs = getInputValues();
+
+    const extraArgsString = Object.entries(extraArgs)
+      .map(([key, value]) => `${key}=${value}`)
+      .join(' ');
+
+    const parameters = `Args: ${(args || []).join(' ')} ${extraArgsString}`;
+
+    const notesText = `---\n\n${timestamp}\n\n${modelInfo}\n${promptTemplate}\n${parameters}\n\n${notesContent}\n\n---\n`;
+
+    const fileName = `${selectedModel || 'unknown_model'}_${timestampFile}.md`;
+    const outputPath = path.join(notesFolderPath, fileName);
+
+    try {
+      await createFolderIfNotExists(notesFolderPath);
+      await fsPromises.appendFile(outputPath, notesText, 'utf8');
+    } catch (err) {
+      console.error(`Error when saving the note: ${err.message}`);
+      // todo specify error message...
+    }
+  }
 }
 //
 // --------------------------------------------
@@ -3200,330 +3455,63 @@ function isValidModelPath(modelPath) {
 
 
 // --------------------------------------------
-// function for generating prefixes and suffixes
+// execute command
 //
-const getPrefixSuffix = async (selectedDropDown) => {
-  let prePrefix = '';
-  // let context = '';
-  let semantic = '';
-  let prefix = '';
-  let suffix = '';
-
-  switch (selectedDropDown) {
-    case 'Custom/None':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '';
-        suffix = '';
-        break;
-    case 'Instruction':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '### Instruction:\n';
-        suffix = '\n### Response:';
-        break;
-    case 'Airoboros':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: \n';
-        suffix = 'ASSISTANT:';
-        break;
-    case 'Alpaca':
-        prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = '### Instruction:\n';
-        suffix = '\n\n### Response:';
-        break;
-    case 'based':
-        prePrefix = 'You are an an AI who shares your opinions, thoughts, and feelings.\n';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-        break;
-    case 'CAMEL Combined':
-        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-        break;
-    case 'Chronos':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '### Instruction:\n';
-        suffix = '\n### Response:';
-        break;
-    case 'Gorilla':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '###USER: ';
-        suffix = '\n###ASSISTANT:';
-        break;
-    case 'GPT4 x Alpaca':
-        prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = '### Instruction:\n';
-        suffix = '\n\n### Response:';
-        break;
-    case 'GPT4 x Vicuna':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '### Instruction:\n';
-        suffix = '\n\n### Response:\n';
-        break;
-    case 'Guanaco':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '### Human: ';
-        suffix = '\n### Assistant: ';
-        break;
-    case 'Guanaco QLoRA':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '### Human: ';
-        suffix = '\n\n### Assistant:';
-        break;
-    // case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
-    //     prePrefix = '';
-    //     context = '';
-    //     semantic = '';
-    //     prefix = '<|prompt|>';
-    //     suffix = '<|endoftext|>\n<|answer|>';
-    //     break;
-    case 'Hippogriff':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-        break;
-    case 'Karen The Editor':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-        break;
-    case 'Lazarus 30B, ':
-        prePrefix = 'Below is an instruction that describes a task. Write a response that appropriately completes the request\n\n';
-        //context = '';
-        semantic = '';
-        prefix = '### Instruction: ';
-        suffix = '\n\n### Response:';
-        break;
-    case 'Manticore':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-        break;
-    case 'Minotaur':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-    // case 'MPT 30B':
-    //     prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
-    //     context = '';
-    //     semantic = '';
-    //     prefix = '\n<|im_start|>user\n';
-    //     suffix = '<|im_end|>\n<|im_start|>assistant';
-        // break;
-    case 'Nous Hermes':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '### Instruction: ';
-        suffix = '\n\n### Response:';
-        break;
-    case 'OpenAssistant LLaMA':
-        prePrefix = '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
-        //context = '';
-        semantic = '';
-        prefix = '<|prompter|>';
-        suffix = '<|endoftext|><|assistant|>';
-        break;
-    case 'Orca Mini':
-        prePrefix = '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
-        //context = '';
-        semantic = '';
-        prefix = '\n\n### User:\n';
-        suffix = '\n\n### Response:';
-        break;
-    case 'Samantha':
-        prePrefix = 'You are Samantha, a sentient AI.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-        break;
-    case 'Stable Vicuna':
-        prePrefix = 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = '### Human: ';
-        suffix = '\n### Assistant:';
-        break;
-    // case 'Starchat':
-    //     prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
-    //     context = '';
-    //     semantic = '';
-    //     prefix = '<|user|> ';
-    //     suffix = ' <|end|>\n<|assistant|>';
-    //     break;
-    case 'Tulu':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '<|user|>\n';
-        suffix = '\n<|assistant|>\n';
-        break;
-    case 'Vicuna V0':
-        prePrefix = 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = '### Human: ';
-        suffix = '\n### Assistant:';
-        break;
-    case 'Vicuna V1.1 & V1.3':
-        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = 'ASSISTANT:';
-        break;
-    case 'Vigogne Chat':
-        prePrefix = 'Below is a conversation between a user and an AI assistant named Vigogne.\nVigogne is an open-source AI assistant created by Zaion (https://zaion.ai/).\nVigogne is polite, emotionally aware, humble-but-knowledgeable, always providing helpful and detailed answers.\nVigogne is skilled in responding proficiently in the languages its users use and can perform a wide range of tasks such as text editing, translation, question answering, logical reasoning, coding, and many others.\nVigogne cannot receive or generate audio or visual content and cannot access the internet.\nVigogne strictly avoids discussing sensitive, offensive, illegal, ethical, or political topics and caveats when unsure of the answer.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = '<|UTILISATEUR|>: ';
-        suffix = '\n<|ASSISTANT|>:';
-        break;
-    case 'Vigogne Instruct':
-        prePrefix = 'Ci-dessous se trouve une instruction qui décrit une tâche à accomplir. Rédigez une réponse qui répond de manière précise à la demande.';
-        //context = '';
-        semantic = '';
-        prefix = '<|UTILISATEUR|>: ';
-        suffix = '\n<|ASSISTANT|>:';
-        break;
-    case 'WizardLM 7B':
-        prePrefix = '';
-        //context = '';
-        semantic = '';
-        prefix = '';
-        suffix = '\n\n### Response: ';
-        break;
-    case 'WizardLM 13B & 30B V1.0':
-        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions. ';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = ' ASSISTANT:';
-        break;
-    case 'WizardLM 33B V1.0 Uncensored':
-        prePrefix = 'You are a helpful AI assistant.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = 'ASSISTANT:';
-    case 'WizardVicunaLM':
-        prePrefix = 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
-        //context = '';
-        semantic = '';
-        prefix = 'USER: ';
-        suffix = '\nASSISTANT:';
-    default:
-        break;
-  }
-  return { prePrefix, semantic, prefix, suffix };
-};
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-// function to save personal notes
-//
-function saveMultiNotes() {
-  if (multiNotesSaveLabel) {  
-    const notesContent = multiNotes.getValue();
-    const timestamp = new Date().toISOString();
-    const timestampFile = Math.floor(Date.now() / 1000);
-    const modelInfo = `Model: ${selectedModel}`;
-    const promptTemplate = `Prompt-Template: ${dropDownOptions[dropDown.selected]}`;
-    const parameters = `Args: ${args.join(' ')}`;
-
-    const notesText = `---\n\n${timestamp}\n\n${modelInfo}\n${promptTemplate}\n${parameters}\n\n${notesContent}\n\n---\n`;
-
-    const fileName = `${selectedModel}_${timestampFile}.md`;
-    const outputPath = path.join(notesFolderPath, fileName);
-    createFolderIfNotExists(notesFolderPath).then(() => {
-    fsPromises.appendFile(outputPath, notesText, 'utf8');
-    });
-}}
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-//
-  const executeCommand = async (text) => {
+const executeCommand = async (text) => {
+  return new Promise(async (resolve, reject) => {
+    const timestamp = getSessionTimestamp();
     const selectedDropDown = dropDownOptions[dropDown.selected];
     const { prePrefix, prefix, suffix } = await getPrefixSuffix(selectedDropDown);
-    const userInput = text; // store user input in a separate variable
-
+    const userInput = text;
     const historyEnabled = historyCheckbox.checked;
-    const checkBoxPath = historyEnabled ? path.join(logsFolderPath, 'complete_logic.txt') : path.join(logsFolderPath, 'current_logic.txt');
-  
-    await logAll(prePrefix, prefix, userInput, suffix);
 
-    // await logAll(prePrefix, prefix, userInput, suffix);
+    let collectedOutput = '';
+    let checkBoxPath;
+    const currentPath = path.join(workingdirFolderPath, 'current_logic.txt');
+    const fullPath = path.join(workingdirFolderPath, `complete_logic_${timestamp}.txt`);
+  
+
+
+  // --------------------------------------------
+    if (historyEnabled) {
+
+      if (fs.existsSync(fullPath)) {
+        checkBoxPath = fullPath;
+        await catInputChat(prefix, userInput, suffix);
+      } 
+      else {
+        checkBoxPath = currentPath;
+        await zeroChat();
+        await noChatHistory(prePrefix, prefix, userInput, suffix);}} 
+    
+    else {
+      checkBoxPath = currentPath;
+      await noChatHistory(prePrefix, prefix, userInput, suffix);}
+// --------------------------------------------
+
+
+
     const modelPath = path.join(modelsFolder, selectedModel);
+
       if (!isValidModelPath(modelPath)) {
-        outputBox.insertBottom('Error: Invalid model path. Please select a .bin file.');
+        outputBox.insertBottom('Error: Invalid model path or no model selected. Please select a .bin file.');
         screen.render();
         return;
       }
 
-      // const historyEnabled = historyCheckbox.checked;
+
       let gptInput = text;
       let gptOutput = '';
   
-      if (historyEnabled) {
-        // gptInput = `${prePrefix}${prefix}${text}${suffix}`;
-        gptInput = `${prefix}${text}${suffix}`;
-
-      } else {
-        // gptInput = `${prePrefix}${prefix}${text}${suffix}`;
-        gptInput = `${prefix}${text}${suffix}`;
-
-      }
     
     const command = './main';
     const args = [
       '-m',
-      path.join(modelsFolder, selectedModel), 
+      path.join(modelsFolder, selectedModel),
       '-n',
       '158',
+      '-c',
+      '2000',
     ];
 
     if (temperatureInput.getValue() !== '') {
@@ -3594,67 +3582,67 @@ function saveMultiNotes() {
     } else if (radioSet.children[2].checked) {
       args.push('--mirostat', '2');
     }
-    // args.push('-p', `${gptInput}`);
-    // args.push('-f', currentPath);
     args.push('-f', checkBoxPath);
-    logCommand(command, args);
 
-    child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
 
+
+logCommand(command, args);
+logPachaCommand(command, args);
+
+isFirstData = true;
+child = spawn(command, args, { stdio: ['inherit', 'pipe', 'pipe'] });
 
 let output = ''; // variable for saving the output
 let isFirstChunk = true;
 let formattedOutput = '';
-
-
-
+let boldFormattedOutput = '';
 
 
 // ======= SUFFIZIENTER CODE ABSCHNITT ========
 //
 //
 child.stdout.on('data', (data) => {
-  output += data.toString();
-  gptOutput += data.toString();
 
-  const userOutput = gptOutput.replace(`${prefix}${text}${suffix}`, '');
 
-  // let formattedOutput;
-  if (isFirstChunk) {
-    // formattedOutput = `\n\u001b[1;30mYou\n\u001b[0m\u001b[1;90m${text}\u001b[0m\n\n\u001b[1;30mAssistant\u001b[0m\u001b[1;90m${userOutput}\n\u001b[0m`;
+  if (isFirstData) {
+      output = data.toString();
+      isFirstData = false;
 
-    formattedOutput = `\n\nYou\n${text}\n\nAssistant${userOutput}\n`;
-
-    isFirstChunk = false;
   } else {
-    formattedOutput = `${userOutput}`;
-  }
-//
+      gptOutput += data.toString();
+      const userOutput = gptOutput.replace(`${prefix}${text}${suffix}`, '');
+
+
+      if (isFirstChunk) {
+        formattedOutput = `\n\n\u001b[1mYou\u001b[0m\n${text}\n\n\u001b[1mAssistant\u001b[0m\n${userOutput}\n`;
+        boldFormattedOutput = `\n\n\u001b[1mYou\n${text}\n\nAssistant\n${userOutput}\u001b[0m\n`;
+        isFirstChunk = false;
+
+      } else {
+          formattedOutput = `${userOutput}`;
+          boldFormattedOutput = `\u001b[1m${userOutput}\u001b[0m`;
+      }
+    }
+  //
 // --------------------------------------------
 
 
 
 
 
-
 // --------------------------------------------
+// visual discremination between concatenated and not concat
 //
-// funktioniert nur gut für NON-history!
-  // let currentContent = outputBox.getContent();
-  // outputBox.setContent(currentContent + formattedOutput);
-  // screen.render();
-
   if (historyEnabled) {
     let currentContent = outputBox.getContent();
-    outputBox.setContent(currentContent + formattedOutput);
+    outputBox.setContent(currentContent + boldFormattedOutput);
   } else {
     let currentContent = outputBox.getContent();
     outputBox.setContent(currentContent + formattedOutput);
   }
-  
   screen.render();
   //
-  // --------------------------------------------
+// --------------------------------------------
 
 
 
@@ -3662,12 +3650,11 @@ child.stdout.on('data', (data) => {
 
 // --------------------------------------------
 //
-  logOutput(data.toString());
-
   // Reset output and gptOutput
   output = '';
   gptOutput = '';
   dialogLog += `${formattedOutput}`;
+  collectedOutput += data.toString();
  }
 )
 //
@@ -3679,28 +3666,41 @@ child.stdout.on('data', (data) => {
 
 // --------------------------------------------
 //
-child.on('close', () => {
-  writeToSessionLog(dialogLog);
-  // newLogic(userInput);
-  // logPrePrefix(prePrefix);
-  // logPrefix(prefix);
-  // logSuffix(suffix);
-});
-
-
-// Handle error output if needed
+// Handle standard error
 child.stderr.on('data', (data) => { 
-  logOutput(data.toString());
+  logRawOutput(data.toString());
  }
 )
+
+
+// Handle standard output as concatenating chat function
+if (historyEnabled){
+child.stdout.on('data', (data) => {
+  catOutputChat(data.toString());
+  }
+ )
+}
+  else {
+  // ...
+}
 
 
 child.on('error', (error) => {
-  outputBox.insertBottom(`Fehler: ${error.message}`);
+  outputBox.insertBottom(`Error: ${error.message}`);
   screen.render();
- }
-)
-};
+  reject(error);
+  }
+ )
+
+
+child.on('close', async (code) => {
+  resolve();
+  // write the output into chat-file
+  const outputPath = path.join(workingdirFolderPath, `complete_logic_${timestamp}.txt`);
+  fs.writeFileSync(outputPath, collectedOutput, 'utf8');
+});
+});
+}
 //
 // --------------------------------------------
 
@@ -3713,6 +3713,8 @@ child.on('error', (error) => {
 const modelsFolderArgIndex = args.indexOf('-m');
 if (modelsFolderArgIndex !== -1 && modelsFolderArgIndex + 1 < args.length) {
   const modelsArg = args[modelsFolderArgIndex + 1];
+
+
   if (path.extname(modelsArg) === '.bin') {
     selectedModel = path.basename(modelsArg);
     modelsFolder = path.dirname(modelsArg);
@@ -3723,7 +3725,7 @@ if (modelsFolderArgIndex !== -1 && modelsFolderArgIndex + 1 < args.length) {
   modelsFolder = './models';
 }
 
-// findBinFiles(modelsFolder);
+// findBinFiles(modelsFolder)
 findBinFiles(modelsFolder).then(binFiles => { 
   const fileNames = binFiles.map(filePath => path.basename(filePath));
   fileList.setItems(fileNames);
@@ -3742,6 +3744,7 @@ findBinFiles(modelsFolder).then(binFiles => {
 // function to show interactive cpu usage
 //
 function setBackgroundColor(usage) {
+
   if (usage >= 0 && usage <= 15) {
     topBar.style.bg = '#555753';
   } else if (usage >= 16 && usage <= 50) {
@@ -3757,23 +3760,26 @@ function setBackgroundColor(usage) {
   }
 }
 
+
 const cpuValues = [];
 const numValuesForAverage = 10;
 
 function updateCpuUsage() {
   osUtils.cpuUsage(function(usage) {
     cpuValues.push(usage * 100);
+
     if (cpuValues.length > numValuesForAverage) {
       cpuValues.shift();
     }
+
     const cpuUsageAverage = cpuValues.reduce((a, b) => a + b, 0) / cpuValues.length;
     const cpuUsagePercentage = cpuUsageAverage.toFixed(0);
     topBarLabel.setContent(`CPU ${cpuUsagePercentage}%`);
     setBackgroundColor(cpuUsagePercentage);
     screen.render();
-  });
+  }
+ )
 }
-
 setInterval(updateCpuUsage, 200);
 //
 // --------------------------------------------
@@ -3788,7 +3794,9 @@ stopLabel.on('click', function(data) {
   if (child) {
     child.kill('SIGINT');
   }
-});
+ }
+)
+
 
 sendButton.on('press', () => {
   const text = inputBox.getValue();
@@ -3799,11 +3807,12 @@ sendButton.on('press', () => {
  }
 )
 
-inputBox.on('submit', () => {
+
+inputBox.on('submit', async () => { 
   const text = inputBox.getValue();
   if (text.trim() !== '') {
     isFirstChunk = true;
-    executeCommand(text);
+    await executeCommand(text);
     inputBox.clearValue();
     screen.render();
   }
@@ -3826,9 +3835,6 @@ screen.key(['C-c', 'enter'], (ch, key) => {
  }
 )
 
-multiNotesSaveLabel.on('click', () => {
-  saveMultiNotes();
-});
 
 screen.render();
 //
