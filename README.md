@@ -18,7 +18,7 @@ Pacha is a Text User Interface (TUI) application developed in JavaScript that se
 
 ## Installation
 
-- **Pre-Release Binaries (v1.0.0)**: Pre-release binaries for Windows, Linux, and macOS are available for download. You can find them in the "Releases" section of this repository.
+- **Pre-Release Binaries (v1.0.0)**: [Pre-release binaries](https://github.com/mounta11n/Pacha/releases) for Windows, Linux, and macOS are available for download. You can find them in the "Releases" section of this repository.
 - **Build from Source**: To build Pacha from source, follow these steps:
   1. Install Node.js and npm (Node Package Manager) if you haven't already.
   2. Navigate to the project directory and run `npm install` to install the required dependencies.
