@@ -34,6 +34,12 @@ If no path is provided, the application will default to searching for `.bin` fil
 
 Example command: `node pacha.js -m /path/to/language/models`
 
+## Next TODOs (priority)
+
+- Add the other options to the right sidebar, especially GPU related ones.
+- Improve error handling
+
+
 ## Planned Features
 
 I have some exciting plans for future enhancements to Pacha, including:
