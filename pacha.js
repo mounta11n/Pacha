@@ -3631,7 +3631,7 @@ child.stdout.on('data', (data) => {
 
 
 // --------------------------------------------
-// visual discremination between concatenated and not concat
+// visual discrimination between concatenated and not concat
 //
   if (historyEnabled) {
     let currentContent = outputBox.getContent();
@@ -3640,6 +3640,8 @@ child.stdout.on('data', (data) => {
     let currentContent = outputBox.getContent();
     outputBox.setContent(currentContent + formattedOutput);
   }
+  
+  outputBox.setScrollPerc(100);
   screen.render();
   //
 // --------------------------------------------
