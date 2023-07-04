@@ -3504,7 +3504,16 @@ const executeCommand = async (text) => {
       let gptOutput = '';
   
     
-    const command = './main';
+    // Read args if we find --binary then use the next path instead of ./main
+    let command = './main';
+    let previous_arg;
+    for(let arg of process.argv.slice(2)) {
+      if(previous_arg == "--binary") {
+        command = arg;
+      }
+      previous_arg = arg;
+    }
+
     const args = [
       '-m',
       path.join(modelsFolder, selectedModel),
