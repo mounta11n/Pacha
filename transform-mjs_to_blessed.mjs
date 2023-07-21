@@ -1,6 +1,5 @@
 import blessed from 'blessed'
 import * as contrib from 'blessed-contrib'
-import { stdin, stdout } from 'node:process'
 
 const API_URL = 'http://127.0.0.1:8080'
 
@@ -38,43 +37,6 @@ async function tokenize(content) {
 
 const n_keep = await tokenize(instruction).length
 
-// async function chat_completion(question) {
-//     const result = await fetch(`${API_URL}/completion`, {
-//         method: 'POST',
-//         body: JSON.stringify({
-//             prompt: format_prompt(question),
-//             temperature: 0.2,
-//             top_k: 40,
-//             top_p: 0.9,
-//             n_keep: n_keep,
-//             n_predict: 256,
-//             stop: ["\n### Human:"], // stop completion after generating this
-//             stream: true,
-//         })
-//     })
-
-//     if (!result.ok) {
-//         return
-//     }
-
-//     let answer = ''
-
-//     for await (var chunk of result.body) {
-//         const t = Buffer.from(chunk).toString('utf8')
-//         if (t.startsWith('data: ')) {
-//             const message = JSON.parse(t.substring(6))
-//             answer += message.content
-//             if (message.stop) {
-//                 if (message.truncated) {
-//                     chat.shift()
-//                 }
-//                 break
-//             }
-//         }
-//     }
-
-//     return answer.trimStart()
-// }
 async function chat_completion(question) {
     const result = await fetch(`${API_URL}/completion`, {
         method: 'POST',
@@ -114,26 +76,98 @@ async function chat_completion(question) {
     }
 }
 
+// --------------------------------------------
 
-const screen = blessed.screen()
-const grid = new contrib.grid({ rows: 12, cols: 12, screen: screen })
+// const screen = blessed.screen()
+const screen = blessed.screen({
+    smartCSR: true,
+    // dockBorders: true,
+    fullUnicode: true,
+    ignoreLocked: ['C-c'],
+   }
+  )
+const grid = new contrib.grid({ rows: 15, cols: 17, screen: screen })
 
-const outputBox = grid.set(0, 0, 9, 12, blessed.box, { 
+// --------------------------------------------
+
+const sidebarLeft = grid.set(1, 1, 13, 5, blessed.box, { 
+    // label: 'Output', 
+    // keys: true,
+    // vi: true,
+    // mouse: true,
+    // alwaysScroll: true, 
+    // scrollable: true, 
+    // scrollbar: { ch: ' ' }
+})
+// --------------------------------------------
+
+const sidebarRight = grid.set(1, 11, 13, 5, blessed.box, { 
+    // label: 'Output', 
+    // keys: true,
+    // vi: true,
+    // mouse: true,
+    // alwaysScroll: true, 
+    // scrollable: true, 
+    // scrollbar: { ch: ' ' }
+})
+
+// --------------------------------------------
+
+const outputBox = grid.set(1, 6, 10, 5, blessed.box, { 
     label: 'Output', 
     keys: true,
-    vi: true, 
+    vi: true,
+    mouse: true,
     alwaysScroll: true, 
     scrollable: true, 
     scrollbar: { ch: ' ' }
 })
 
-const inputBox = grid.set(9, 0, 3, 12, blessed.textbox, { 
+// --------------------------------------------
+
+const inputBox = grid.set(11, 6, 2, 5, blessed.textbox, { 
     label: 'Input',
     inputOnFocus: true, 
     keys: true, 
     vi: true,
     mouse: true
 })
+
+
+const negativeBox = grid.set(13, 6, 1, 5, blessed.textbox, { 
+    label: 'Negative Prompt',
+    inputOnFocus: true, 
+    keys: true, 
+    vi: true,
+    mouse: true
+})
+
+
+const tempBox = grid.set(11.5, 1, 1, 4, blessed.textbox, { 
+    label: 'Temp',
+    inputOnFocus: true, 
+    keys: true, 
+    vi: true,
+    mouse: true
+})
+
+const n_predictBox = grid.set(11.5, 6, 1, 4, blessed.textbox, { 
+    label: 'n_prdct',
+    inputOnFocus: true, 
+    keys: true, 
+    vi: true,
+    mouse: true
+})
+
+const advancedBox = grid.set(12.5, 1, 1, 9, blessed.textbox, { 
+    label: 'advncd',
+    inputOnFocus: true, 
+    keys: true, 
+    vi: true,
+    mouse: true
+})
+
+// --------------------------------------------
 
 inputBox.on('submit', async (text) => {
     inputBox.clearValue()
@@ -149,8 +183,18 @@ inputBox.on('submit', async (text) => {
     screen.render()
 })
 
+// --------------------------------------------
+
+screen.append(sidebarLeft)
+screen.append(sidebarRight)
+    sidebarRight.append(tempBox)
+    sidebarRight.append(n_predictBox)
+    sidebarRight.append(advancedBox)
 screen.append(outputBox)
 screen.append(inputBox)
+screen.append(negativeBox)
+
+// --------------------------------------------
 
 inputBox.focus()
 
