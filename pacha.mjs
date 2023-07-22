@@ -23,6 +23,9 @@ let instruction = '';
 
 let prefixSuffix = { human: '### Instruction: ', assistant: '### Response: ' };
 
+let abortController;
+
+
 const screen = blessed.screen({
     smartCSR: true,
     fullUnicode: true,
@@ -404,10 +407,13 @@ const n_keep = await tokenize(instruction).length
 
 // --------------------------------------------
 //
-async function chat_completion(instruction, question, signal) {
+async function chat_completion(instruction, question) {
+  abortController = new AbortController();
+
   const result = await fetch(`${API_URL}/completion`, {
-      method: 'POST',
-      body: JSON.stringify({
+    method: 'POST',
+    signal: abortController.signal,
+    body: JSON.stringify({
           prompt: format_prompt(instruction, question),
           temperature: 0.2,
           top_k: 40,
@@ -425,6 +431,7 @@ async function chat_completion(instruction, question, signal) {
 
     outputBox.setContent(outputBox.getContent() + '\n' + '\n');
 
+    try {
     for await (var chunk of result.body) {
         const t = Buffer.from(chunk).toString('utf8');
         if (t.startsWith('data: ')) {
@@ -443,6 +450,28 @@ async function chat_completion(instruction, question, signal) {
             }
         }
     }
+  }
+  catch (error) {
+    if (error.name === 'AbortError') {} 
+    else {
+      console.error('Fehler beim Lesen des Streams:', error);
+    }
+  }
+}
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+function stopGeneration() {
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+  }
 }
 //
 // --------------------------------------------
@@ -3132,6 +3161,9 @@ const stopLabel = blessed.text({
 }
 )
 
+stopLabel.on('click', () => {
+  stopGeneration();
+});
 // stopLabel.on('click', () => {
 //   abortController.abort();
 // });
