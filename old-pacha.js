@@ -27,92 +27,6 @@ let isFirstData = true;
 
 
 
-const API_URL = 'http://127.0.0.1:8080'
-
-const chat = [
-    {
-        human: "Hello, Assistant.",
-        assistant: "Hello. How may I help you today?"
-    },
-    {
-        human: "Please tell me the largest city in Europe.",
-        assistant: "Sure. The largest city in Europe is Moscow, the capital of Russia."
-    },
-]
-
-
-
-const instruction = `A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions.`
-
-
-
-
-
-function format_prompt(question) {
-  return `${instruction}\n${
-      chat.map(m =>`### Human: ${m.human}\n### Assistant: ${m.assistant}`).join("\n")
-  }\n### Human: ${question}\n### Assistant:`
-}
-
-async function tokenize(content) {
-  const result = await fetch(`${API_URL}/tokenize`, {
-      method: 'POST',
-      body: JSON.stringify({ content })
-  })
-
-  if (!result.ok) {
-      return []
-  }
-
-  return await result.json().tokens
-}
-
-const n_keep = await tokenize(instruction).length
-
-async function chat_completion(question) {
-  const result = await fetch(`${API_URL}/completion`, {
-      method: 'POST',
-      body: JSON.stringify({
-          prompt: format_prompt(question),
-          temperature: 0.2,
-          top_k: 40,
-          top_p: 0.9,
-          n_keep: n_keep,
-          n_predict: 256,
-          stop: ["\n### Human:"], // stop completion after generating this
-          stream: true,
-      })
-  })
-
-  if (!result.ok) {
-      return
-  }
-
-  for await (var chunk of result.body) {
-      const t = Buffer.from(chunk).toString('utf8');
-      if (t.startsWith('data: ')) {
-          const message = JSON.parse(t.substring(6));
-          
-          // Get the current content and append new content
-          const newContent = outputBox.getContent() + message.content;  
-          outputBox.setContent(newContent);
-  
-          screen.render();
-          if (message.stop) {
-              if (message.truncated) {
-                  chat.shift();
-              }
-              break;
-          }
-      }
-  }
-}
-
-
-
-
-
-
 // --------------------------------------------
 // for some reason inputBox and multiNotes have to been initialized already here,
 // otherwise the app will crash
@@ -3555,6 +3469,9 @@ const executeCommand = async (text) => {
     let checkBoxPath;
     const currentPath = path.join(workingdirFolderPath, 'current_logic.txt');
     const fullPath = path.join(workingdirFolderPath, `complete_logic_${timestamp}.txt`);
+  
+
+
   // --------------------------------------------
     if (historyEnabled) {
 
@@ -3571,6 +3488,9 @@ const executeCommand = async (text) => {
       checkBoxPath = currentPath;
       await noChatHistory(prePrefix, prefix, userInput, suffix);}
 // --------------------------------------------
+
+
+
     const modelPath = path.join(modelsFolder, selectedModel);
 
       if (!isValidModelPath(modelPath)) {
@@ -3579,9 +3499,11 @@ const executeCommand = async (text) => {
         return;
       }
 
+
       let gptInput = text;
       let gptOutput = '';
   
+    
     // Read args if we find --binary then use the next path instead of ./main
     let command = './main';
     let previous_arg;
@@ -3671,6 +3593,8 @@ const executeCommand = async (text) => {
     }
     args.push('-f', checkBoxPath);
 
+
+
 logCommand(command, args);
 logPachaCommand(command, args);
 
@@ -3682,7 +3606,10 @@ let isFirstChunk = true;
 let formattedOutput = '';
 let boldFormattedOutput = '';
 
+
 // ======= SUFFIZIENTER CODE ABSCHNITT ========
+//
+//
 child.stdout.on('data', (data) => {
 
 
@@ -3705,6 +3632,13 @@ child.stdout.on('data', (data) => {
           boldFormattedOutput = `\u001b[1m${userOutput}\u001b[0m`;
       }
     }
+  //
+// --------------------------------------------
+
+
+
+
+
 // --------------------------------------------
 // visual discrimination between concatenated and not concat
 //
@@ -3718,7 +3652,15 @@ child.stdout.on('data', (data) => {
   
   outputBox.setScrollPerc(100);
   screen.render();
+  //
 // --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
   // Reset output and gptOutput
   output = '';
   gptOutput = '';
@@ -3726,12 +3668,21 @@ child.stdout.on('data', (data) => {
   collectedOutput += data.toString();
  }
 )
+//
 // --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
 // Handle standard error
 child.stderr.on('data', (data) => { 
   logRawOutput(data.toString());
  }
 )
+
 
 // Handle standard output as concatenating chat function
 if (historyEnabled){
@@ -3744,12 +3695,14 @@ child.stdout.on('data', (data) => {
   // ...
 }
 
+
 child.on('error', (error) => {
   outputBox.insertBottom(`Error: ${error.message}`);
   screen.render();
   reject(error);
   }
  )
+
 
 child.on('close', async (code) => {
   resolve();
@@ -3771,6 +3724,7 @@ child.on('close', async (code) => {
 const modelsFolderArgIndex = args.indexOf('-m');
 if (modelsFolderArgIndex !== -1 && modelsFolderArgIndex + 1 < args.length) {
   const modelsArg = args[modelsFolderArgIndex + 1];
+
 
   if (path.extname(modelsArg) === '.bin') {
     selectedModel = path.basename(modelsArg);
@@ -3800,93 +3754,81 @@ findBinFiles(modelsFolder).then(binFiles => {
 // --------------------------------------------
 // function to show interactive cpu usage
 //
-// function setBackgroundColor(usage) {
+function setBackgroundColor(usage) {
 
-//   if (usage >= 0 && usage <= 15) {
-//     topBar.style.bg = '#555753';
-//   } else if (usage >= 16 && usage <= 50) {
-//     topBar.style.bg = '#4e9a06';
-//   } else if (usage >= 51 && usage <= 72) {
-//     topBar.style.bg = '#8ae234';
-//   } else if (usage >= 73 && usage <= 86) {
-//     topBar.style.bg = 'cyan';
-//   } else if (usage >= 87 && usage <= 95) {
-//     topBar.style.bg = 'magenta';
-//   } else if (usage >= 96) {
-//     topBar.style.bg = 'red';
-//   }
-// }
-
-// const cpuValues = [];
-// const numValuesForAverage = 10;
-
-// function updateCpuUsage() {
-//   osUtils.cpuUsage(function(usage) {
-//     cpuValues.push(usage * 100);
-
-//     if (cpuValues.length > numValuesForAverage) {
-//       cpuValues.shift();
-//     }
-
-//     const cpuUsageAverage = cpuValues.reduce((a, b) => a + b, 0) / cpuValues.length;
-//     const cpuUsagePercentage = cpuUsageAverage.toFixed(0);
-//     topBarLabel.setContent(`CPU ${cpuUsagePercentage}%`);
-//     setBackgroundColor(cpuUsagePercentage);
-//     screen.render();
-//   }
-//  )
-// }
-// setInterval(updateCpuUsage, 200);
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-//
-// stopLabel.on('click', function(data) {
-//   if (child) {
-//     child.kill('SIGINT');
-//   }
-//  }
-// )
-
-
-// sendButton.on('press', () => {
-//   const text = inputBox.getValue();
-//   executeCommand(text);
-//   isFirstChunk = true;
-//   inputBox.clearValue();
-//   screen.render();
-//  }
-// )
-
-
-// inputBox.on('submit', async () => { 
-//   const text = inputBox.getValue();
-//   if (text.trim() !== '') {
-//     isFirstChunk = true;
-//     await executeCommand(text);
-//     inputBox.clearValue();
-//     screen.render();
-//   }
-//  }
-// )
-inputBox.on('submit', async (text) => {
-  inputBox.clearValue()
-  screen.render()
-
-  outputBox.insertBottom(`> ${text}`)
-
-  const response = await chat_completion(text)
-  if (response) {
-      outputBox.insertBottom(`Assistant: ${response}\n`)
+  if (usage >= 0 && usage <= 15) {
+    topBar.style.bg = '#555753';
+  } else if (usage >= 16 && usage <= 50) {
+    topBar.style.bg = '#4e9a06';
+  } else if (usage >= 51 && usage <= 72) {
+    topBar.style.bg = '#8ae234';
+  } else if (usage >= 73 && usage <= 86) {
+    topBar.style.bg = 'cyan';
+  } else if (usage >= 87 && usage <= 95) {
+    topBar.style.bg = 'magenta';
+  } else if (usage >= 96) {
+    topBar.style.bg = 'red';
   }
+}
 
-  screen.render()
-})
+
+const cpuValues = [];
+const numValuesForAverage = 10;
+
+function updateCpuUsage() {
+  osUtils.cpuUsage(function(usage) {
+    cpuValues.push(usage * 100);
+
+    if (cpuValues.length > numValuesForAverage) {
+      cpuValues.shift();
+    }
+
+    const cpuUsageAverage = cpuValues.reduce((a, b) => a + b, 0) / cpuValues.length;
+    const cpuUsagePercentage = cpuUsageAverage.toFixed(0);
+    topBarLabel.setContent(`CPU ${cpuUsagePercentage}%`);
+    setBackgroundColor(cpuUsagePercentage);
+    screen.render();
+  }
+ )
+}
+setInterval(updateCpuUsage, 200);
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+stopLabel.on('click', function(data) {
+  if (child) {
+    child.kill('SIGINT');
+  }
+ }
+)
+
+
+sendButton.on('press', () => {
+  const text = inputBox.getValue();
+  executeCommand(text);
+  isFirstChunk = true;
+  inputBox.clearValue();
+  screen.render();
+ }
+)
+
+
+inputBox.on('submit', async () => { 
+  const text = inputBox.getValue();
+  if (text.trim() !== '') {
+    isFirstChunk = true;
+    await executeCommand(text);
+    inputBox.clearValue();
+    screen.render();
+  }
+ }
+)
 //
 // --------------------------------------------
 
@@ -3903,6 +3845,7 @@ screen.key(['C-c', 'enter'], (ch, key) => {
   process.exit(0);
  }
 )
+
 
 screen.render();
 //

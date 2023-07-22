@@ -1,11 +1,10 @@
 {
   "name": "pacha",
   "version": "1.0.0",
-  "type": "module",
   "description": "A TUI frontend for llama.cpp",
-  "main": "pacha.js",
-  "bin": "pacha.js",
-  "start": "pacha.js",
+  "main": "pacha.mjs",
+  "bin": "pacha.mjs",
+  "start": "pacha.mjs",
   "dependencies": {
     "axios": "^1.4.0",
     "blessed": "^0.1.81",
