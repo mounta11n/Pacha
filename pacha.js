@@ -3304,12 +3304,12 @@ const getPrefixSuffix = async (selectedDropDown = 'Instruction') => {
         suffix = '\n\n### Assistant:';
         semantic = '';
         break;
-  // case 'H2O\'s GPT-GM-OASST1-Falcon 40B v2':
-  //     prePrefix = '';
-  //     prefix = '<|prompt|>';
-  //     suffix = '<|endoftext|>\n<|answer|>';
-  //     semantic = '';
-  //     break;
+  case 'H2O OASST1-Falcon 40B v2':
+      prePrefix = '';
+      prefix = '<|prompt|>';
+      suffix = '<|endoftext|>\n<|answer|>';
+      semantic = '';
+      break;
     case 'Hippogriff':
         prePrefix = '';
         prefix = 'USER: ';
@@ -3340,12 +3340,12 @@ const getPrefixSuffix = async (selectedDropDown = 'Instruction') => {
         suffix = '\nASSISTANT:';
         semantic = '';
         break;
-  // case 'MPT 30B':
-  //     prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
-  //     prefix = '\n<|im_start|>user\n';
-  //     suffix = '<|im_end|>\n<|im_start|>assistant';
-  //     semantic = '';
-  //     break;
+  case 'MPT 30B':
+      prePrefix = '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
+      prefix = '\n<|im_start|>user\n';
+      suffix = '<|im_end|>\n<|im_start|>assistant';
+      semantic = '';
+      break;
     case 'Nous Hermes':
         prePrefix = '';
         prefix = '### Instruction: ';
@@ -3375,12 +3375,12 @@ const getPrefixSuffix = async (selectedDropDown = 'Instruction') => {
         prefix = '### Human: ';
         suffix = '\n### Assistant:';
         break;
-  // case 'Starchat':
-  //     prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
-  //     prefix = '<|user|> ';
-  //     suffix = ' <|end|>\n<|assistant|>';
-  //     semantic = '';
-  //     break;
+  case 'Starchat':
+      prePrefix = '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
+      prefix = '<|user|> ';
+      suffix = ' <|end|>\n<|assistant|>';
+      semantic = '';
+      break;
     case 'Tulu':
         prePrefix = '';
         prefix = '<|user|>\n';

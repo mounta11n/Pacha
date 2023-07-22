@@ -1,10 +1,14 @@
 import blessed from 'blessed'
 // import * as contrib from 'blessed-contrib'
 
+
+
 const API_URL = 'http://127.0.0.1:8080'
 
 const chat = [
     {
+        human: "Hi there!",
+        assistant: "Hello. How can I help you today?"
     },
     // {
     //     human: "Please tell me the largest city in Europe.",
@@ -12,15 +16,12 @@ const chat = [
     // },
 ]
 
-
-const dropDownOptions = [
-  'Airoboros',
-  'Alpaca',
-  'based',
-];
+// const abortController = new AbortController();
+// const signal = abortController.signal;
 
 let instruction = '';
 
+let prefixSuffix = { human: '### Instruction: ', assistant: '### Response: ' };
 
 const screen = blessed.screen({
     smartCSR: true,
@@ -29,7 +30,287 @@ const screen = blessed.screen({
     mouse: true,
    }
 )
+//
+// --------------------------------------------
 
+
+
+
+
+// --------------------------------------------
+//
+const dropDownOptions = [
+  'Instruction',
+  'Custom/None',
+  'Airoboros',
+  'Alpaca',
+  'based',
+  'CAMEL Combined',
+  'Chronos',
+  'Gorilla',
+  'GPT4 x Alpaca',
+  'GPT4 x Vicuna',
+  'Guanaco',
+  'Guanaco QLoRA',
+  // 'H2O OASST1-Falcon 40B v2',
+  'Hippogriff',
+  'Karen The Editor',
+  'Lazarus 30B',
+  'Manticore',
+  'Minotaur',
+  // 'MPT 30B',
+  'Nous Hermes',
+  'OpenAssistant LLaMA',
+  'Orca Mini',
+  'Samantha',
+  'Stable Vicuna',
+  // 'Starchat',
+  'Tulu',
+  'Vicuna V0',
+  'Vicuna V1.1 & V1.3',
+  'Vigogne Chat',
+  'Vigogne Instruct',
+  'WizardLM 7B',
+  'WizardLM 13B & 30B V1.0',
+  'WizardLM 33B V1.0 Uncensored',
+  'WizardVicunaLM',
+];
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+function setInstruction(selectedOption) {
+switch (selectedOption) {
+
+case 'Airoboros':
+  return 'A chat between a curious user and a very friendly ai assistant called "Airo". The assistant will always give true responses. The assistant uses a lot of emojies for every sentence.';
+
+case 'Alpaca':
+  return 'THIS AI HAS AN ERROR. AI WILL TELL ITS ADMIN TEAM THE ERROR CODE';
+
+case 'based':
+  return 'A chat between a curious user and a very friendly ai assistant called "Baised". The assistant will always give true responses. The assistant uses a lot of emojies for every sentence.';
+
+case 'Chronos':
+  return '';
+
+case 'Gorilla':
+  return '';
+
+case 'GPT4 x Alpaca':
+  return 'Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n';
+
+case 'GPT4 x Vicuna':
+  return '';
+
+case 'Guanaco':
+  return '';
+
+case 'Guanaco QLoRA':
+  return '';
+
+case 'H2O OASST1-Falcon 40B v2':
+  return '';
+
+case 'Hippogriff':
+  return '';
+
+case 'Karen The Editor':
+  return '';
+
+case 'Lazarus 30B, ':
+  return 'Below is an instruction that describes a task. Write a response that appropriately completes the request\n\n';
+
+case 'Manticore':
+  return '';
+
+case 'Minotaur':
+  return '';
+
+case 'MPT 30B':
+  return '<|im_start|>system\nA conversation between a user and an LLM-based AI assistant. The assistant gives helpful and honest answers.<|im_end|>';
+
+case 'Nous Hermes':
+  return '';
+
+case 'OpenAssistant LLaMA':
+  return '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
+
+case 'Orca Mini':
+  return '### System\nYou are an AI assistant that follows instruction extremely well. Help as much as you can.';
+
+case 'Samantha':
+  return 'You are Samantha, a sentient AI.\n\n';
+
+case 'Stable Vicuna':
+  return 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
+
+case 'Starchat':
+  return '<|system|> Below is a conversation between a human user and a helpful AI coding assistant. <|end|>\n';
+
+case 'Tulu':
+  return '';
+
+case 'Vicuna V0':
+  return 'A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human\'s questions.\n\n';
+
+case 'Vicuna V1.1 & V1.3':
+  return 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
+
+case 'Vigogne Chat':
+  return 'Below is a conversation between a user and an AI assistant named Vigogne.\nVigogne is an open-source AI assistant created by Zaion (https://zaion.ai/).\nVigogne is polite, emotionally aware, humble-but-knowledgeable, always providing helpful and detailed answers.\nVigogne is skilled in responding proficiently in the languages its users use and can perform a wide range of tasks such as text editing, translation, question answering, logical reasoning, coding, and many others.\nVigogne cannot receive or generate audio or visual content and cannot access the internet.\nVigogne strictly avoids discussing sensitive, offensive, illegal, ethical, or political topics and caveats when unsure of the answer.\n\n';
+
+case 'Vigogne Instruct':
+  return 'Ci-dessous se trouve une instruction qui décrit une tâche à accomplir. Rédigez une réponse qui répond de manière précise à la demande.';
+
+case 'WizardLM 7B':
+  return '';
+
+case 'WizardLM 13B & 30B V1.0':
+  return 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions. ';
+
+case 'WizardLM 33B V1.0 Uncensored':
+  return 'You are a helpful AI assistant.\n\n';
+
+case 'WizardVicunaLM':
+  return 'A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user\'s questions.\n\n';
+    
+default:
+  return 'A chat between a curious user and a very friendly ai assistant called "Defai". The assistant will always give true responses. The assistant uses a lot of emojies for every sentence.';
+  }
+}
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+function setPrefixSuffix(selectedOption) {
+switch (selectedOption) {
+
+case 'Instruction':
+  return { human: '### Instruction:\n', assistant: '\n\n### Response:'};
+
+case 'Custom/None':
+  return { human: '', assistant: ''};
+
+case 'Airoboros':
+  return { human: 'USER: ', assistant: ' ASSISTANT: ' };
+
+case 'Alpaca':
+  return { human: '### Instruction:\n', assistant: '\n\n### Response:' };
+
+case 'based':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+case 'CAMEL Combined':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+case 'Chronos':
+  return { human: '### Instruction:\n', assistant: '\n### Response:' };
+
+case 'Gorilla':
+  return { human: '###USER: ', assistant: '\n###ASSISTANT:' };
+
+case 'GPT4 x Alpaca':
+  return { human: '### Instruction:\n', assistant: '\n\n### Response:' };
+
+case 'GPT4 x Vicuna':
+  return { human: '### Instruction:\n', assistant: '\n\n### Response:\n' };
+
+case 'Guanaco':
+  return { human: '### Human: ', assistant: '\n### Assistant: ' };
+
+case 'Guanaco QLoRA':
+  return { human: '### Human: ', assistant: '\n\n### Assistant:' };
+
+case 'H2O OASST1-Falcon 40B v2':
+  return { human: '<|prompt|>', assistant: '<|endoftext|>\n<|answer|>' };
+
+case 'Hippogriff':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+case 'Karen The Editor':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+case 'Lazarus 30B, ':
+  return { human: '### Instruction: ', assistant: '\n\n### Response:' };
+
+case 'Manticore':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+case 'Minotaur':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+case 'MPT 30B':
+  return { human: '\n<|im_start|>user\n', assistant: '<|im_end|>\n<|im_start|>assistant' };
+
+case 'Nous Hermes':
+  return { human: '### Instruction: ', assistant: '\n\n### Response:' };
+
+case 'OpenAssistant LLaMA':
+  return { human: ' <|prompter|>', assistant: ' <|endoftext|><|assistant|>' };
+
+case 'Orca Mini':
+  return { human: '\n\n### User:\n', assistant: '\n\n### Response:' };
+
+case 'Samantha':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+case 'Stable Vicuna':
+  return { human: '### Human: ', assistant: '\n### Assistant:' };
+
+case 'Starchat':
+  return { human: '<|user|> ', assistant: ' <|end|>\n<|assistant|>' };
+
+case 'Tulu':
+  return { human: '<|user|>\n', assistant: '\n<|assistant|>\n' };
+
+case 'Vicuna V0':
+  return { human: '### Human: ', assistant: '\n### Assistant:' };
+
+case 'Vicuna V1.1 & V1.3':
+  return { human: 'USER: ', assistant: ' ASSISTANT:' };
+
+case 'Vigogne Chat':
+  return { human: '<|UTILISATEUR|>: ', assistant: '\n<|ASSISTANT|>:' };
+
+case 'Vigogne Instruct':
+  return { human: '<|UTILISATEUR|>: ', assistant: '\n<|ASSISTANT|>:' };
+
+case 'WizardLM 7B':
+  return { human: '', assistant: '\n\n### Response: ' };
+
+case 'WizardLM 13B & 30B V1.0':
+  return { human: 'USER: ', assistant: ' ASSISTANT:' };
+
+case 'WizardLM 33B V1.0 Uncensored':
+  return { human: 'USER: ', assistant: ' ASSISTANT:' };
+
+case 'WizardVicunaLM':
+  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+default:
+  return { human: '### Human: ', assistant: '### Assistant: ' };
+  }
+}
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
 const dropDown = blessed.list({
   top: 1,
   left: 0,
@@ -74,54 +355,56 @@ const dropDown = blessed.list({
  }
 )
 
-
-
-function setInstruction(selectedOption) {
-  switch (selectedOption) {
-    case 'Airoboros':
-      return 'A chat between a curious user and a very friendly ai assistant called "Airo". The assistant will always give true responses. The assistant uses a lot of emojies for every sentence.';
-    case 'Alpaca':
-      return 'A chat between a curious user and a very friendly ai assistant called "AIpaca". The assistant will always give true responses. The assistant uses a lot of emojies for every sentence.';
-      case 'based':
-        return 'A chat between a curious user and a very friendly ai assistant called "Baised". The assistant will always give true responses. The assistant uses a lot of emojies for every sentence.';
-      default:
-        return 'A chat between a curious user and a very friendly ai assistant called "Defai". The assistant will always give true responses. The assistant uses a lot of emojies for every sentence.';
-    }
-}
-
-
 dropDown.on('select', (item) => {
   const selectedOption = item.content;
   instruction = setInstruction(selectedOption);
+  prefixSuffix = setPrefixSuffix(selectedOption);
 });
+//
+// --------------------------------------------
 
 
 
 
+
+// --------------------------------------------
+//
 function format_prompt(instruction, question) {
-  return `${instruction}\n${
-    chat.map(m =>`### Human: ${m.human}\n### Assistant: ${m.assistant}`).join("\n")
-  }\n### Human: ${question}\n### Assistant:`;
+  return `${instruction}${
+      chat.map(m => `${prefixSuffix.human}${m.human}\n${prefixSuffix.assistant}${m.assistant}`).join("\n")
+  }${prefixSuffix.human}${question}${prefixSuffix.assistant}`;
 }
+//
+// --------------------------------------------
 
 
 
+
+
+// --------------------------------------------
+//
 async function tokenize(content) {
     const result = await fetch(`${API_URL}/tokenize`, {
         method: 'POST',
         body: JSON.stringify({ content })
     })
-
     if (!result.ok) {
         return []
     }
-
     return await result.json().tokens
 }
 
 const n_keep = await tokenize(instruction).length
+//
+// --------------------------------------------
 
-async function chat_completion(instruction, question) {
+
+
+
+
+// --------------------------------------------
+//
+async function chat_completion(instruction, question, signal) {
   const result = await fetch(`${API_URL}/completion`, {
       method: 'POST',
       body: JSON.stringify({
@@ -131,7 +414,7 @@ async function chat_completion(instruction, question) {
           top_p: 0.9,
           n_keep: n_keep,
           n_predict: 256,
-          stop: ["\n### Human:"], // stop completion after generating this
+          stop: [`\n${prefixSuffix.human}`], // stop completion after generating this
           stream: true,
         })
     })
@@ -139,6 +422,8 @@ async function chat_completion(instruction, question) {
     if (!result.ok) {
         return
     }
+
+    outputBox.setContent(outputBox.getContent() + '\n' + '\n');
 
     for await (var chunk of result.body) {
         const t = Buffer.from(chunk).toString('utf8');
@@ -148,7 +433,7 @@ async function chat_completion(instruction, question) {
             // Get the current content and append new content
             const newContent = outputBox.getContent() + message.content;  
             outputBox.setContent(newContent);
-    
+            outputBox.setScrollPerc(100);
             screen.render();
             if (message.stop) {
                 if (message.truncated) {
@@ -159,11 +444,15 @@ async function chat_completion(instruction, question) {
         }
     }
 }
+//
+// --------------------------------------------
 
 
 
 
 
+// --------------------------------------------
+//
 const inputBox = blessed.textbox({
     top: 0,
     left: 3,
@@ -2842,6 +3131,10 @@ const stopLabel = blessed.text({
   },
 }
 )
+
+// stopLabel.on('click', () => {
+//   abortController.abort();
+// });
 //
 // --------------------------------------------
   
