@@ -1,14 +1,17 @@
 import blessed from 'blessed'
-// import * as contrib from 'blessed-contrib'
+import * as contrib from 'blessed-contrib'
+import osUtils from 'os-utils'
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 
 
 const API_URL = 'http://127.0.0.1:8080'
-
 const chat = [
     {
-        human: "Hi there!",
-        assistant: "Hello. How can I help you today?"
+        human: "Are you an AI?",
+        assistant: "Yes, I am large language model."
     },
     // {
     //     human: "Please tell me the largest city in Europe.",
@@ -16,15 +19,10 @@ const chat = [
     // },
 ]
 
-// const abortController = new AbortController();
-// const signal = abortController.signal;
-
 let instruction = '';
-
 let prefixSuffix = { human: '### Instruction: ', assistant: '### Response: ' };
-
 let abortController;
-
+let isServerRunning = false;
 
 const screen = blessed.screen({
     smartCSR: true,
@@ -37,6 +35,72 @@ const screen = blessed.screen({
 // --------------------------------------------
 
 
+
+
+
+// --------------------------------------------
+//
+const fileDialog = blessed.filemanager({
+  border: 'line',
+  // done: () => {},
+  top: 1,
+  left: 0,
+  width: '100%-4',
+  height: '100%-4',
+  vi: true,
+  keys: true,
+  mouse: true,
+  style: {
+    bg: '#555753',
+    fg: '#f5f5f5',
+    label: {
+      bg: '#555753',
+      fg: '#f5f5f5',
+      bold: true,
+      hover: {
+        bg: '#555753',
+        fg: '#8ae234',
+        bold: true,
+      },
+      selected: {
+        bg: '#555753',
+        fg: 'red',
+        bold: true,
+      },
+    },
+    border: {
+      bg: '#555753',
+      fg: '#d3d7cf',
+    },
+    selected: {
+      bg: '#555753',
+      fg: '#8ae234',
+      bold: true,
+    },
+  },
+  cwd: process.env.HOME, // Startverzeichnis auf das Benutzerverzeichnis setzen
+  keys: true,
+  vi: true,
+  scrollbar: {
+    ch: ' ',
+    inverse: true
+  },
+  mouse: true,
+  // Add filter function to hide hidden files
+  filter: (fileName) => {
+    return !fileName.startsWith("."); // TODO doesn't work
+  }
+});
+
+
+fileDialog.refresh();
+
+
+fileDialog.on('submit', (file) => {
+  const command = `./server -m ${file}`;
+  // maybe: executeCommand(command);
+  // screen.destroy();
+});
 
 
 
@@ -58,6 +122,7 @@ const dropDownOptions = [
   // 'H2O OASST1-Falcon 40B v2',
   'Hippogriff',
   'Karen The Editor',
+  'Llama-2-Chat',
   'Lazarus 30B',
   'Manticore',
   'Minotaur',
@@ -125,6 +190,9 @@ case 'Hippogriff':
 
 case 'Karen The Editor':
   return '';
+
+  case 'Llama-2-Chat':
+    return `<s>[INST] <<SYS>>\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n<</SYS>>\n\nHi! [/INST] Hi there!`;
 
 case 'Lazarus 30B, ':
   return 'Below is an instruction that describes a task. Write a response that appropriately completes the request\n\n';
@@ -197,112 +265,115 @@ default:
 // --------------------------------------------
 //
 function setPrefixSuffix(selectedOption) {
-switch (selectedOption) {
+  switch (selectedOption) {
 
-case 'Instruction':
-  return { human: '### Instruction:\n', assistant: '\n\n### Response:'};
+  case 'Instruction':
+    return { human: '### Instruction:\n', assistant: '\n\n### Response:'};
 
-case 'Custom/None':
-  return { human: '', assistant: ''};
+  case 'Custom/None':
+    return { human: '', assistant: ''};
 
-case 'Airoboros':
-  return { human: 'USER: ', assistant: ' ASSISTANT: ' };
+  case 'Airoboros':
+    return { human: 'USER: ', assistant: ' ASSISTANT: ' };
 
-case 'Alpaca':
-  return { human: '### Instruction:\n', assistant: '\n\n### Response:' };
+  case 'Alpaca':
+    return { human: '### Instruction:\n', assistant: '\n\n### Response:' };
 
-case 'based':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'based':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
 
-case 'CAMEL Combined':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'CAMEL Combined':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
 
-case 'Chronos':
-  return { human: '### Instruction:\n', assistant: '\n### Response:' };
+  case 'Chronos':
+    return { human: '### Instruction:\n', assistant: '\n### Response:' };
 
-case 'Gorilla':
-  return { human: '###USER: ', assistant: '\n###ASSISTANT:' };
+  case 'Gorilla':
+    return { human: '###USER: ', assistant: '\n###ASSISTANT:' };
 
-case 'GPT4 x Alpaca':
-  return { human: '### Instruction:\n', assistant: '\n\n### Response:' };
+  case 'GPT4 x Alpaca':
+    return { human: '### Instruction:\n', assistant: '\n\n### Response:' };
 
-case 'GPT4 x Vicuna':
-  return { human: '### Instruction:\n', assistant: '\n\n### Response:\n' };
+  case 'GPT4 x Vicuna':
+    return { human: '### Instruction:\n', assistant: '\n\n### Response:\n' };
 
-case 'Guanaco':
-  return { human: '### Human: ', assistant: '\n### Assistant: ' };
+  case 'Guanaco':
+    return { human: '### Human: ', assistant: '\n### Assistant: ' };
 
-case 'Guanaco QLoRA':
-  return { human: '### Human: ', assistant: '\n\n### Assistant:' };
+  case 'Guanaco QLoRA':
+    return { human: '### Human: ', assistant: '\n\n### Assistant:' };
 
-case 'H2O OASST1-Falcon 40B v2':
-  return { human: '<|prompt|>', assistant: '<|endoftext|>\n<|answer|>' };
+  case 'H2O OASST1-Falcon 40B v2':
+    return { human: `<|prompt|>`, assistant: `<|endoftext|>\n<|answer|>` };
 
-case 'Hippogriff':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'Hippogriff':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
 
-case 'Karen The Editor':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'Karen The Editor':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
 
-case 'Lazarus 30B, ':
-  return { human: '### Instruction: ', assistant: '\n\n### Response:' };
+  case 'Lazarus 30B':
+    return { human: '### Instruction: ', assistant: '\n\n### Response:' };
 
-case 'Manticore':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'Llama-2-Chat':
+    return { human: ` </s><s>[INST]`, assistant: ` [/INST] `}
 
-case 'Minotaur':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'Manticore':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
 
-case 'MPT 30B':
-  return { human: '\n<|im_start|>user\n', assistant: '<|im_end|>\n<|im_start|>assistant' };
+  case 'Minotaur':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
 
-case 'Nous Hermes':
-  return { human: '### Instruction: ', assistant: '\n\n### Response:' };
+  case 'MPT 30B':
+    return { human: `\n<|im_start|>user\n`, assistant: `<|im_end|>\n<|im_start|>assistant` };
 
-case 'OpenAssistant LLaMA':
-  return { human: ' <|prompter|>', assistant: ' <|endoftext|><|assistant|>' };
+  case 'Nous Hermes':
+    return { human: '### Instruction: ', assistant: '\n\n### Response:' };
 
-case 'Orca Mini':
-  return { human: '\n\n### User:\n', assistant: '\n\n### Response:' };
+  case 'OpenAssistant LLaMA':
+    return { human: ` <|prompter|>`, assistant: ` <|endoftext|><|assistant|>` };
 
-case 'Samantha':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'Orca Mini':
+    return { human: '\n\n### User:\n', assistant: '\n\n### Response:' };
 
-case 'Stable Vicuna':
-  return { human: '### Human: ', assistant: '\n### Assistant:' };
+  case 'Samantha':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
 
-case 'Starchat':
-  return { human: '<|user|> ', assistant: ' <|end|>\n<|assistant|>' };
+  case 'Stable Vicuna':
+    return { human: '### Human: ', assistant: '\n### Assistant:' };
 
-case 'Tulu':
-  return { human: '<|user|>\n', assistant: '\n<|assistant|>\n' };
+  case 'Starchat':
+    return { human: `<|user|> `, assistant: ` <|end|>\n<|assistant|>` };
 
-case 'Vicuna V0':
-  return { human: '### Human: ', assistant: '\n### Assistant:' };
+  case 'Tulu':
+    return { human: `<|user|>\n`, assistant: `\n<|assistant|>\n` };
 
-case 'Vicuna V1.1 & V1.3':
-  return { human: 'USER: ', assistant: ' ASSISTANT:' };
+  case 'Vicuna V0':
+    return { human: '### Human: ', assistant: '\n### Assistant:' };
 
-case 'Vigogne Chat':
-  return { human: '<|UTILISATEUR|>: ', assistant: '\n<|ASSISTANT|>:' };
+  case 'Vicuna V1.1 & V1.3':
+    return { human: 'USER: ', assistant: ' ASSISTANT:' };
 
-case 'Vigogne Instruct':
-  return { human: '<|UTILISATEUR|>: ', assistant: '\n<|ASSISTANT|>:' };
+  case 'Vigogne Chat':
+    return { human: `<|UTILISATEUR|>: `, assistant: `\n<|ASSISTANT|>:` };
 
-case 'WizardLM 7B':
-  return { human: '', assistant: '\n\n### Response: ' };
+  case 'Vigogne Instruct':
+    return { human: `<|UTILISATEUR|>: `, assistant: `\n<|ASSISTANT|>:` };
 
-case 'WizardLM 13B & 30B V1.0':
-  return { human: 'USER: ', assistant: ' ASSISTANT:' };
+  case 'WizardLM 7B':
+    return { human: '', assistant: '\n\n### Response: ' };
 
-case 'WizardLM 33B V1.0 Uncensored':
-  return { human: 'USER: ', assistant: ' ASSISTANT:' };
+  case 'WizardLM 13B & 30B V1.0':
+    return { human: 'USER: ', assistant: ' ASSISTANT:' };
 
-case 'WizardVicunaLM':
-  return { human: 'USER: ', assistant: '\nASSISTANT:' };
+  case 'WizardLM 33B V1.0 Uncensored':
+    return { human: 'USER: ', assistant: ' ASSISTANT:' };
 
-default:
-  return { human: '### Human: ', assistant: '### Assistant: ' };
+  case 'WizardVicunaLM':
+    return { human: 'USER: ', assistant: '\nASSISTANT:' };
+
+  default:
+    return { human: '### Human: ', assistant: '### Assistant: ' };
   }
 }
 //
@@ -377,8 +448,8 @@ function format_prompt(instruction, question) {
       chat.map(m => `${prefixSuffix.human}${m.human}\n${prefixSuffix.assistant}${m.assistant}`).join("\n")
   }${prefixSuffix.human}${question}${prefixSuffix.assistant}`;
 }
-//
-// --------------------------------------------
+
+////////
 
 
 
@@ -386,53 +457,131 @@ function format_prompt(instruction, question) {
 
 // --------------------------------------------
 //
+// async function tokenize(content) {
+//     const result = await fetch(`${API_URL}/tokenize`, {
+//         method: 'POST',
+//         body: JSON.stringify({ content })
+//     })
+//     if (!result.ok) {
+//         return []
+//     }
+//     return await result.json().tokens
+// }
+
+// const n_keep = await tokenize(instruction).length
+// //
+// // --------------------------------------------
+
+
+
+
+
+// // --------------------------------------------
+// //
+// async function chat_completion(instruction, question) {
+//   abortController = new AbortController();
+
+//   const result = await fetch(`${API_URL}/completion`, {
+//     method: 'POST',
+//     signal: abortController.signal,
+//     body: JSON.stringify({
+//           prompt: format_prompt(instruction, question),
+//           temperature: 0.2,
+//           top_k: 40,
+//           top_p: 0.9,
+//           n_keep: n_keep,
+//           n_predict: 256,
+//           stop: [`${prefixSuffix.human}`], // stop completion after generating this
+//           stream: true,
+//         })
+//     })
+
+//     if (!result.ok) {
+//         return
+//     }
+
+//     outputBox.setContent(outputBox.getContent() + '\n' + '\n');
+
+//     try {
+//     for await (var chunk of result.body) {
+//         const t = Buffer.from(chunk).toString('utf8');
+//         if (t.startsWith('data: ')) {
+//             const message = JSON.parse(t.substring(6));
+            
+//             // Get the current content and append new content
+//             const newContent = outputBox.getContent() + message.content;  
+//             outputBox.setContent(newContent);
+//             outputBox.setScrollPerc(100);
+//             screen.render();
+//             if (message.stop) {
+//                 if (message.truncated) {
+//                     chat.shift();
+//                 }
+//                 break;
+//             }
+//         }
+//     }
+//   }
+//   catch (error) {
+//     if (error.name === 'AbortError') {} 
+//     else {
+//       console.error('Fehler beim Lesen des Streams:', error);
+//     }
+//   }
+// }
+
+
 async function tokenize(content) {
-    const result = await fetch(`${API_URL}/tokenize`, {
-        method: 'POST',
-        body: JSON.stringify({ content })
-    })
-    if (!result.ok) {
-        return []
-    }
-    return await result.json().tokens
+  try {
+      const result = await fetch(`${API_URL}/tokenize`, {
+          method: 'POST',
+          body: JSON.stringify({ content })
+      });
+
+      // isServerRunning = result.ok; // true, wenn der Server antwortet, sonst false
+      
+      if (!result.ok) {
+          return [];
+      }
+
+      return await result.json().tokens;
+  } catch (error) {
+      // console.error('Fehler beim Aufruf des Servers:', error);
+    // isServerRunning = false; // Setze den Serverstatus auf false, wenn ein Fehler auftritt
+    return []; // oder eine andere Standardreaktion, wenn der Server nicht erreichbar ist
+  }
 }
 
-const n_keep = await tokenize(instruction).length
-//
-// --------------------------------------------
-
-
-
-
-
-// --------------------------------------------
-//
 async function chat_completion(instruction, question) {
-  abortController = new AbortController();
+  try {
+      abortController = new AbortController();
 
-  const result = await fetch(`${API_URL}/completion`, {
-    method: 'POST',
-    signal: abortController.signal,
-    body: JSON.stringify({
-          prompt: format_prompt(instruction, question),
-          temperature: 0.2,
-          top_k: 40,
-          top_p: 0.9,
-          n_keep: n_keep,
-          n_predict: 256,
-          stop: [`\n${prefixSuffix.human}`], // stop completion after generating this
-          stream: true,
-        })
-    })
+      const result = await fetch(`${API_URL}/completion`, {
+          method: 'POST',
+          signal: abortController.signal,
+          body: JSON.stringify({
+              prompt: format_prompt(instruction, question),
+              temperature: 0.2,
+              top_k: 40,
+              top_p: 0.9,
+              n_keep: n_keep,
+              n_predict: 256,
+              stop: [`${prefixSuffix.human}`],
+              stream: true,
+          })
+      });
 
-    if (!result.ok) {
-        return
-    }
+      // isServerRunning = result.ok;
 
-    outputBox.setContent(outputBox.getContent() + '\n' + '\n');
+      if (!result.ok) {
+          return;
+      }
 
-    try {
-    for await (var chunk of result.body) {
+      outputBox.setContent(outputBox.getContent() + '\n' + '\n');
+
+      try {
+          for await (var chunk of result.body) {
+              
         const t = Buffer.from(chunk).toString('utf8');
         if (t.startsWith('data: ')) {
             const message = JSON.parse(t.substring(6));
@@ -449,15 +598,19 @@ async function chat_completion(instruction, question) {
                 break;
             }
         }
-    }
-  }
-  catch (error) {
-    if (error.name === 'AbortError') {} 
-    else {
-      console.error('Fehler beim Lesen des Streams:', error);
-    }
+          }
+      } catch (error) {
+          if (error.name === 'AbortError') {} 
+          else {
+              // console.error('Fehler beim Lesen des Streams:', error);
+          }
+      }
+  } catch (error) {
+      console.error('Fehler beim Aufruf des Servers:', error);
   }
 }
+
+
 //
 // --------------------------------------------
 
@@ -3057,12 +3210,85 @@ const historyCheckbox = blessed.checkbox({
   //  }
   // )
   //
-  // --------------------------------------------
-  
-  
-  
-  
-  
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+// Funktion zum Überprüfen des Serverstatus und Aktualisieren des Button-Hintergrunds
+async function updateServerButtonStatus() {
+  try {
+    // Versuche, eine Verbindung zum Server herzustellen
+    // Verwende den vorhandenen /tokenize Endpunkt oder einen anderen Endpunkt, der einen Statuscode 200 zurückgibt, wenn er erreichbar ist
+    const result = await fetch(`${API_URL}/tokenize`, {
+      method: 'OPTIONS' // Ändere die Methode in 'OPTIONS', um nur den Serverstatus zu überprüfen und nicht tatsächlich Daten zu senden
+    });
+
+    // Wenn alles in Ordnung ist (Status 200), setze die Hintergrundfarbe auf Grün
+    if (result.ok) {
+      serverButton.style.bg = '#4e9a06';
+    } else {
+      // Wenn die Verbindung fehlschlägt oder der Status nicht 200 ist, setze die Hintergrundfarbe auf Rot
+      serverButton.style.bg = '#cc0000';
+    }
+  } catch (error) {
+    // Bei Fehlern setze die Hintergrundfarbe auf Rot
+    serverButton.style.bg = '#cc0000';
+  }
+
+  // Aktualisiere das Aussehen des Buttons auf dem Bildschirm
+  screen.render();
+}
+//
+// --------------------------------------------
+
+
+
+
+
+// --------------------------------------------
+//
+const serverButton = blessed.button({
+  done: () => {},
+  top: '2',
+  // bottom: 1,
+  // right: 1,
+  // left: 0,
+  height: 3,
+  width: 10,
+  keys: true,
+  mouse: true,
+  content: 'Server',
+  align: 'center',
+  valign: 'middle',
+  style: {
+    fg: '#f5f5f5',
+    bg: '#555753',
+    // border: {
+    //   fg: '#f5f5f5',
+    // },
+    hover: {
+      bg: '#8ae234',
+      fg: '#f5f5f5',
+      bold: true,
+    },
+  },
+  }
+)
+
+updateServerButtonStatus();
+setInterval(updateServerButtonStatus, 5000);
+//
+// --------------------------------------------
+
+
+
+
+
 // --------------------------------------------
 //
 const outEtstopBox = blessed.box({
@@ -3164,9 +3390,6 @@ const stopLabel = blessed.text({
 stopLabel.on('click', () => {
   stopGeneration();
 });
-// stopLabel.on('click', () => {
-//   abortController.abort();
-// });
 //
 // --------------------------------------------
   
@@ -3205,30 +3428,80 @@ const outputBox = blessed.box({
   },
   }
 )
+
+function makeBold(text) {
+  return `\x1b[1m${text}\x1b[0m`;
+}
 //
 // --------------------------------------------
   
-  
+
 
 
 
 // --------------------------------------------
-
-
+//
 inputBox.on('submit', async (text) => {
   inputBox.clearValue()
   screen.render()
 
-  outputBox.insertBottom(`> ${text}`)
+  outputBox.insertBottom(`\n> ${makeBold(text)}`)
+  screen.render()
 
   const response = await chat_completion(instruction, text)
   if (response) {
-      outputBox.insertBottom(`Assistant: ${response}\n`)
+      outputBox.insertBottom(`Assistant:${response}\n`)
   }
-
   screen.render()
 })
+//
+// --------------------------------------------
 
+
+
+
+
+// --------------------------------------------
+// function to dynamically show cpu usage
+//
+function setBackgroundColor(usage) {
+
+  if (usage >= 0 && usage <= 15) {
+    topBar.style.bg = '#555753';
+  } else if (usage >= 16 && usage <= 50) {
+    topBar.style.bg = '#4e9a06';
+  } else if (usage >= 51 && usage <= 72) {
+    topBar.style.bg = '#8ae234';
+  } else if (usage >= 73 && usage <= 86) {
+    topBar.style.bg = 'cyan';
+  } else if (usage >= 87 && usage <= 95) {
+    topBar.style.bg = 'magenta';
+  } else if (usage >= 96) {
+    topBar.style.bg = 'red';
+  }
+}
+
+const cpuValues = [];
+const numValuesForAverage = 10;
+
+function updateCpuUsage() {
+  osUtils.cpuUsage(function(usage) {
+    cpuValues.push(usage * 100);
+
+    if (cpuValues.length > numValuesForAverage) {
+      cpuValues.shift();
+    }
+
+    const cpuUsageAverage = cpuValues.reduce((a, b) => a + b, 0) / cpuValues.length;
+    const cpuUsagePercentage = cpuUsageAverage.toFixed(0);
+    topBarLabel.setContent(`CPU ${cpuUsagePercentage}%`);
+    setBackgroundColor(cpuUsagePercentage);
+    screen.render();
+  }
+ )
+}
+setInterval(updateCpuUsage, 200);
+//
 // --------------------------------------------
 
 
@@ -3264,7 +3537,9 @@ screen.append(frame);
       // fileEtTipFrame.append(fileListRightTooltip);
       // fileEtTipFrame.append(fileListBottomTooltip);
       // fileEtTipFrame.append(fileList);
-      fileEtTipFrame.append(placeHolderfileList)
+      // fileEtTipFrame.append(placeHolderfileList);
+      fileEtTipFrame.append(fileDialog);
+        // fileDialog.append(serverButton);
 
     sidebarLeft.append(dropEtAreaFrame);
       dropEtAreaFrame.append(dropEtTipFrame);
@@ -3278,7 +3553,9 @@ screen.append(frame);
         // textAreaEtTipFrame.append(textAreaBottom2Tooltip);
         // textAreaEtTipFrame.append(multiNotes);
         // textAreaEtTipFrame.append(multiNotesSaveLabel);
-        textAreaEtTipFrame.append(placeHolderNotes)
+        // textAreaEtTipFrame.append(placeHolderNotes)
+        textAreaEtTipFrame.append(serverButton);
+
 
     sidebarRight.append(topBarRightTooltip);
     sidebarRight.append(miroEtFrame);
@@ -3347,7 +3624,7 @@ screen.append(frame);
       checkboxesFrame.append(historyTooltip);
         historyTooltip.append(historyBlockTooltip);
         historyTooltip.append(historyCheckbox);
-
+//
 // --------------------------------------------
 
 
