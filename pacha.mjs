@@ -5,8 +5,6 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-
-
 const API_URL = 'http://127.0.0.1:8080'
 const chat = [
     {
@@ -18,19 +16,18 @@ const chat = [
     //     assistant: "Sure. The largest city in Europe is Moscow, the capital of Russia."
     // },
 ]
+const screen = blessed.screen({
+  smartCSR: true,
+  fullUnicode: true,
+  ignoreLocked: ['C-c'],
+  mouse: true,
+  }
+)
 
 let instruction = '';
 let prefixSuffix = { human: '### Instruction: ', assistant: '### Response: ' };
 let abortController;
 let isServerRunning = false;
-
-const screen = blessed.screen({
-    smartCSR: true,
-    fullUnicode: true,
-    ignoreLocked: ['C-c'],
-    mouse: true,
-   }
-)
 //
 // --------------------------------------------
 
@@ -78,7 +75,7 @@ const fileDialog = blessed.filemanager({
       bold: true,
     },
   },
-  cwd: process.env.HOME, // Startverzeichnis auf das Benutzerverzeichnis setzen
+  cwd: process.env.HOME, // Set the start directory to the user directory
   keys: true,
   vi: true,
   scrollbar: {
@@ -92,15 +89,16 @@ const fileDialog = blessed.filemanager({
   }
 });
 
-
 fileDialog.refresh();
-
 
 fileDialog.on('submit', (file) => {
   const command = `./server -m ${file}`;
   // maybe: executeCommand(command);
-  // screen.destroy();
 });
+//
+// --------------------------------------------
+
+
 
 
 
@@ -448,8 +446,8 @@ function format_prompt(instruction, question) {
       chat.map(m => `${prefixSuffix.human}${m.human}\n${prefixSuffix.assistant}${m.assistant}`).join("\n")
   }${prefixSuffix.human}${question}${prefixSuffix.assistant}`;
 }
-
-////////
+//
+// --------------------------------------------
 
 
 
@@ -457,88 +455,12 @@ function format_prompt(instruction, question) {
 
 // --------------------------------------------
 //
-// async function tokenize(content) {
-//     const result = await fetch(`${API_URL}/tokenize`, {
-//         method: 'POST',
-//         body: JSON.stringify({ content })
-//     })
-//     if (!result.ok) {
-//         return []
-//     }
-//     return await result.json().tokens
-// }
-
-// const n_keep = await tokenize(instruction).length
-// //
-// // --------------------------------------------
-
-
-
-
-
-// // --------------------------------------------
-// //
-// async function chat_completion(instruction, question) {
-//   abortController = new AbortController();
-
-//   const result = await fetch(`${API_URL}/completion`, {
-//     method: 'POST',
-//     signal: abortController.signal,
-//     body: JSON.stringify({
-//           prompt: format_prompt(instruction, question),
-//           temperature: 0.2,
-//           top_k: 40,
-//           top_p: 0.9,
-//           n_keep: n_keep,
-//           n_predict: 256,
-//           stop: [`${prefixSuffix.human}`], // stop completion after generating this
-//           stream: true,
-//         })
-//     })
-
-//     if (!result.ok) {
-//         return
-//     }
-
-//     outputBox.setContent(outputBox.getContent() + '\n' + '\n');
-
-//     try {
-//     for await (var chunk of result.body) {
-//         const t = Buffer.from(chunk).toString('utf8');
-//         if (t.startsWith('data: ')) {
-//             const message = JSON.parse(t.substring(6));
-            
-//             // Get the current content and append new content
-//             const newContent = outputBox.getContent() + message.content;  
-//             outputBox.setContent(newContent);
-//             outputBox.setScrollPerc(100);
-//             screen.render();
-//             if (message.stop) {
-//                 if (message.truncated) {
-//                     chat.shift();
-//                 }
-//                 break;
-//             }
-//         }
-//     }
-//   }
-//   catch (error) {
-//     if (error.name === 'AbortError') {} 
-//     else {
-//       console.error('Fehler beim Lesen des Streams:', error);
-//     }
-//   }
-// }
-
-
 async function tokenize(content) {
   try {
       const result = await fetch(`${API_URL}/tokenize`, {
           method: 'POST',
           body: JSON.stringify({ content })
       });
-
-      // isServerRunning = result.ok; // true, wenn der Server antwortet, sonst false
       
       if (!result.ok) {
           return [];
@@ -546,9 +468,8 @@ async function tokenize(content) {
 
       return await result.json().tokens;
   } catch (error) {
-      // console.error('Fehler beim Aufruf des Servers:', error);
-    // isServerRunning = false; // Setze den Serverstatus auf false, wenn ein Fehler auftritt
-    return []; // oder eine andere Standardreaktion, wenn der Server nicht erreichbar ist
+      // console.error('Error when requesting server', error);
+    return []; // or any default action, if server is not reachable
   }
 }
 
@@ -570,8 +491,6 @@ async function chat_completion(instruction, question) {
               stream: true,
           })
       });
-
-      // isServerRunning = result.ok;
 
       if (!result.ok) {
           return;
@@ -602,15 +521,13 @@ async function chat_completion(instruction, question) {
       } catch (error) {
           if (error.name === 'AbortError') {} 
           else {
-              // console.error('Fehler beim Lesen des Streams:', error);
+              // console.error('Error when reading the stream:', error);
           }
       }
   } catch (error) {
-      console.error('Fehler beim Aufruf des Servers:', error);
+      console.error('Error when requesting server:', error);
   }
 }
-
-
 //
 // --------------------------------------------
 
