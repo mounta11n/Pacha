@@ -13,3 +13,4 @@ models/airoboros-l2-7b-gpt4-1.4.1.ggmlv3.q4_K_S.bin
 models/LLaMA-7B-q5K.bin
 .gitignore
 models/Luna-AI-q4k.bin
+module-examples/color.mjs

@@ -1,5 +1,6 @@
 import blessed from 'blessed'
 import * as contrib from 'blessed-contrib'
+import { exec } from 'child_process';
 import osUtils from 'os-utils'
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -27,6 +28,7 @@ const screen = blessed.screen({
 let instruction = '';
 let prefixSuffix = { human: '### Instruction: ', assistant: '### Response: ' };
 let abortController;
+let cfgSwitch = false;
 let isServerRunning = false;
 //
 // --------------------------------------------
@@ -486,7 +488,7 @@ async function chat_completion(instruction, question) {
               temperature: 0.2,
               top_k: 40,
               top_p: 0.9,
-              n_keep: n_keep,
+              n_keep: 100,
               n_predict: 256,
               stop: [`${prefixSuffix.human}`],
               stream: true,
@@ -593,10 +595,11 @@ inputBox.key(['escape'], function(ch, key) {
   inputBox.cancel();
 });
 
+
 const negativePromptBox = blessed.textbox({
-    top: 0,
+    bottom: 5,
     left: 3,
-    height: 2,
+    height: 3,
     width: '100%-16',
     // label: 'Negative Prompt',
     done: () => {},
@@ -604,81 +607,169 @@ const negativePromptBox = blessed.textbox({
     mouse: true,
     inputOnFocus: true,
     style: {
-      bg: '#353733',
-      fg: '#d3d7cf',
+      bg: "#f5f5f5",
+      fg: "red",
       bold: false,
       hover: {
-        bg: '#353733',
+        bg: '#cc0000',
         fg: '#d3d7cf',
         bold: true,
       },
       focus: {
-        bg: '#353733',
-        fg: '#d3d7cf',
+        bg: '#cc0000',
+        fg: '#f5f5f5',
         bold: true,
       },
       selected: {
-        bg: '#353733',
-        fg: '#d3d7cf',
+        bg: '#cc0000',
+        fg: '#f5f5f5',
         bold: true,
       },
     },
    }
 )
 
+
 const nPromptButton1 = blessed.box({
   bottom: 5,
   right: 8,
-  height: 2,
-  width: 5,
+    height: 3,
+    width: 5,
+  content: " ",
+  tags: true,
+  align: "center",
+  valign: "middle",
+  content: "CFG",
+  // border: {
+  //   type: "line",
+  // },
   style: {
-    bg: 'red',
-    fg: 'red',
-    bold: false,
+    bg: "red",
+    fg: "#f5f5f5",
     hover: {
-      bg: 'green',
-      fg: 'green',
+      bg: "red",
+      fg: "#f5f5f5",
       bold: true,
     },
-    focus: {
-      bg: '#353733',
-      fg: '#d3d7cf',
-      bold: true,
-    },
-    selected: {
-      bg: '#353733',
-      fg: '#d3d7cf',
-      bold: true,
-    },
+    // border: {
+    //   fg: "white",
+    // },
   },
-})
+});
+
 
 const nPromptButton2 = blessed.box({
   bottom: 5,
   right: 3,
-  height: 2,
-  width: 5,
+    height: 3,
+    width: 5,
+  content: " ",
+  tags: true,
+  align: "center",
+  valign: "middle",
+  content: "OFF",
+  // border: {
+  //   type: "line",
+  // },
   style: {
-    bg: '#d3d7cf',
-    fg: '#d3d7cf',
-    bold: false,
+    bg: "#d3d7cf",
+    fg: "#353733",
     hover: {
-      bg: '#f5f5f5',
-      fg: '#f5f5f5',
+      bg: "#d3d7cf",
+      fg: "#353733",
       bold: true,
     },
-    focus: {
-      bg: '#353733',
-      fg: '#d3d7cf',
-      bold: true,
-    },
-    selected: {
-      bg: '#353733',
-      fg: '#d3d7cf',
-      bold: true,
-    },
+    // border: {
+    //   fg: "white",
+    // },
   },
-})
+});
+
+
+nPromptButton1.on("click", () => {
+  if (nPromptButton2.style.bg === "green") {
+
+    nPromptButton1.style.bg = "red";
+    nPromptButton1.style.fg = "#f5f5f5";
+    nPromptButton1.style.bold = false;
+    nPromptButton1.style.hover.bg = "red";
+    nPromptButton1.style.hover.fg = "#f5f5f5";
+    nPromptButton1.style.hover.bold = true;
+
+    nPromptButton2.style.bg = "#d3d7cf";
+    nPromptButton2.style.fg = "#353733";
+    nPromptButton2.style.bold = false;
+    nPromptButton2.style.hover.bg = "#d3d7cf";
+    nPromptButton2.style.hover.fg = "#353733";
+    nPromptButton2.style.hover.bold = true;
+
+    nPromptButton1.setContent("CFG");
+    screen.render();
+    nPromptButton2.setContent("OFF");
+    screen.render();
+  } else {
+    nPromptButton1.style.bg = "#d3d7cf";
+    nPromptButton1.style.fg = "#353733";
+    nPromptButton1.style.bold = false;
+    nPromptButton1.style.hover.bg = "#d3d7cf";
+    nPromptButton1.style.hover.fg = "#353733";
+    nPromptButton1.style.hover.bold = true;
+    nPromptButton2.style.bg = "green";
+    nPromptButton2.style.fg = "#f5f5f5";
+    nPromptButton2.style.bold = false;
+    nPromptButton2.style.hover.bg = "green";
+    nPromptButton2.style.hover.fg = "#f5f5f5";
+    nPromptButton2.style.hover.bold = true;
+
+    nPromptButton1.setContent("CFG");
+    screen.render();
+    nPromptButton2.setContent("ON");
+    screen.render();
+  }
+  screen.render();
+});
+
+
+nPromptButton2.on("click", () => {
+  if (nPromptButton2.style.bg === "green") {
+    nPromptButton1.style.bg = "red";
+    nPromptButton1.style.fg = "#f5f5f5";
+    nPromptButton1.style.bold = false;
+    nPromptButton1.style.hover.bg = "red";
+    nPromptButton1.style.hover.fg = "#f5f5f5";
+    nPromptButton1.style.hover.bold = true;
+    nPromptButton2.style.bg = "#d3d7cf";
+    nPromptButton2.style.fg = "#353733";
+    nPromptButton2.style.bold = false;
+    nPromptButton2.style.hover.bg = "#d3d7cf";
+    nPromptButton2.style.hover.fg = "#353733";
+    nPromptButton2.style.hover.bold = true;
+    nPromptButton1.setContent("CFG");
+    screen.render();
+    nPromptButton2.setContent("OFF");
+    screen.render();
+  } else {
+    nPromptButton1.style.bg = "#d3d7cf";
+    nPromptButton1.style.fg = "#353733";
+    nPromptButton1.style.bold = false;
+    nPromptButton1.style.hover.bg = "#d3d7cf";
+    nPromptButton1.style.hover.fg = "#353733";
+    nPromptButton1.style.hover.bold = true;
+    nPromptButton2.style.bg = "green";
+    nPromptButton2.style.fg = "#f5f5f5";
+    nPromptButton2.style.bold = false;
+    nPromptButton2.style.hover.bg = "green";
+    nPromptButton2.style.hover.fg = "#f5f5f5";
+    nPromptButton2.style.hover.bold = true;
+    nPromptButton1.setContent("CFG");
+    screen.render();
+    nPromptButton2.setContent("ON");
+    screen.render();
+  }
+  screen.render();
+});
+
+screen.render();
 //
 // --------------------------------------------
 
@@ -1988,7 +2079,7 @@ inputBox.on('submit', () => {});
 const inputEtSendFrame = blessed.box({
   bottom: 0,
   right: 0,
-  height: 7,
+  height: 8,
   width: '100%',
   style: {
     fg: '#555753',
@@ -3437,8 +3528,8 @@ const historyCheckbox = blessed.checkbox({
 
 
 // --------------------------------------------
-//
 // check server status and update the button background
+//
 async function updateServerButtonStatus() {
   try {
     // attempts to connect to the server
@@ -3448,7 +3539,7 @@ async function updateServerButtonStatus() {
     });
 
     if (result.ok) {
-      serverButton.style.bg = '#4e9a06';
+      serverButton.style.bg = '#00cc00';
     } else {
       serverButton.style.bg = '#cc0000';
     }
@@ -3496,6 +3587,32 @@ const serverButton = blessed.button({
   }
 )
 
+serverButton.on('press', () => {
+  // Get text value from threadsInput
+  const threadsValue = threadsInput.getValue();
+
+  // Get selected file from fileDialog
+  const modelFile = fileDialog.value; // already set by fileDialog 'submit' event
+
+  // Check if threadsValue and modelFile are not empty
+  if (threadsValue && modelFile) {
+    // Construct the command with arguments
+    const command = `./server -m ${modelFile} -t ${threadsValue}`;
+
+    // Execute the command
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+      console.error(`stderr: ${stderr}`);
+    });
+  } else {
+    console.log('Please make sure threadsInput value and file selection are set.');
+  }
+});
+
 updateServerButtonStatus();
 setInterval(updateServerButtonStatus, 5000);
 //
@@ -3512,7 +3629,7 @@ const outEtstopBox = blessed.box({
   // bottom: '16%',
   left: 3,
   width: '100%-6',
-  height: '100%-13',
+  height: '100%-12',
   // keys: true,
   // mouse: true,
   // scrollable: true,
@@ -3870,5 +3987,7 @@ screen.render();
 screen.key(['escape', 'C-c'], (ch, key) => {
     return process.exit(0)
 })
+
+
 
 screen.render()
